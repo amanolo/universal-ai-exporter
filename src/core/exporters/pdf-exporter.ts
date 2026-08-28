@@ -273,7 +273,8 @@ export class PDFExporter {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
-        format: 'a4'
+        format: 'a4',
+        compress: true
       });
 
       // 2. Slice master canvas into individual pages
@@ -308,9 +309,9 @@ export class PDFExporter {
         }
 
         const renderedHeightPt = (sourceHeight * printWidthPt) / canvas.width;
-        const imgData = pageCanvas.toDataURL('image/png');
+        const imgData = pageCanvas.toDataURL('image/jpeg', 0.92);
 
-        pdf.addImage(imgData, 'PNG', marginPt, marginPt, printWidthPt, renderedHeightPt);
+        pdf.addImage(imgData, 'JPEG', marginPt, marginPt, printWidthPt, renderedHeightPt, undefined, 'FAST');
 
         // Add page footer numbers
         pdf.setFontSize(8);
