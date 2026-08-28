@@ -55,15 +55,6 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "commands": {
-    "quick_export_md": {
-      "suggested_key": {
-        "default": "Alt+Shift+E",
-        "mac": "Alt+Shift+E"
-      },
-      "description": "Quick export active conversation to Markdown"
-    }
-  },
   "browser_specific_settings": {
     "gecko": {
       "id": "universal-ai-exporter@local",

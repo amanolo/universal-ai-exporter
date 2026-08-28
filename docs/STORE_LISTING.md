@@ -75,7 +75,7 @@ Unlike other extensions that upload your chat transcripts to third-party cloud s
 
 ### ⚡ FAST & INTUITIVE WORKFLOW
 • Fast 1-Click Exports: Click the extension icon in your browser toolbar to instantly export to PDF, Markdown, or CSV.
-• Keyboard Shortcut: Press Alt+Shift+E to instantly export the active chat to Markdown.
+• Instant Formatting: Frontmatter toggles, theme selectors, and table extractors built right in.
 ```
 
 ---

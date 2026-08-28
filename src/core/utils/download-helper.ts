@@ -19,11 +19,12 @@ export function downloadBlob(content: Blob | string, filename: string, mimeType:
 
 export function sanitizeFilename(name: string, extension: string): string {
   const clean = name
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
     .trim()
-    .replace(/[\s_]+/g, '-')
-    .slice(0, 50);
+    .replace(/[/\\?%*:|"<>]/g, '-') // Strip illegal OS filesystem characters
+    .replace(/\s+/g, '-')          // Replace spaces with dash
+    .replace(/-+/g, '-')           // Collapse duplicate dashes
+    .replace(/^-|-$/g, '')         // Trim leading/trailing dash
+    .slice(0, 60);
 
   const dateStr = new Date().toISOString().slice(0, 10);
   return `${clean || 'ai-export'}-${dateStr}.${extension}`;

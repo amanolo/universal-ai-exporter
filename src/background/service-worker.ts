@@ -1,6 +1,6 @@
 /**
  * Universal AI Exporter - Background Service Worker
- * Coordinates extension lifecycle, keyboard shortcuts, and context menus.
+ * Manages extension install and update lifecycle.
  */
 
 // Installation & Update Lifecycle
@@ -12,18 +12,5 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       uaie_installed_at: new Date().toISOString(),
       uaie_version: '1.0.0'
     });
-  }
-});
-
-// Listen for keyboard command triggers (e.g. Alt+Shift+E)
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'quick_export_md') {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab && tab.id) {
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'EXPORT_CONVERSATION',
-        options: { format: 'markdown', includeFrontmatter: true }
-      });
-    }
   }
 });
