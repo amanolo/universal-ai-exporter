@@ -86,7 +86,7 @@ npm run build
    /Users/antonismanolioudakis/Documents/Universal AI Exporter/dist/chromium
    ```
 5. Navigate to `https://chatgpt.com`, `https://claude.ai`, `https://www.perplexity.ai`, `https://chat.deepseek.com`, or `https://gemini.google.com`.
-6. Use the floating action pill in the bottom-right corner or click the extension icon in the toolbar!
+6. Click the **Universal AI Exporter** icon in your browser toolbar to export!
 
 ### 3. Load in Mozilla Firefox
 1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.

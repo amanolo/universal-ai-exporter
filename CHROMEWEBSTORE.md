@@ -47,5 +47,5 @@
 - Executive Light, Midnight Dark, and Academic Paper PDF themes with running headers and page-break protection.
 - Obsidian & Notion Markdown engine with YAML Frontmatter and Callouts.
 - 1-Click CSV table extractor with Excel UTF-8 BOM encoding.
-- Injected glassmorphic floating toolbar.
+- Smart Scope selective export (Full Chat, Latest Deliverable, Last 3 Turns, Custom).
 - 100% Offline Ed25519 asymmetric cryptographic license verification.
