@@ -13,8 +13,8 @@ export function extractCleanText(element: Element | null): string {
 
   const clone = element.cloneNode(true) as HTMLElement;
 
-  // Remove scripts, styles, menus, dropdowns, UI action buttons, copy buttons, feedback icons, and screen-reader headers
-  const unwanted = clone.querySelectorAll('script, style, noscript, button, svg, [role="button"], [role="menu"], [role="listbox"], mat-menu, bard-mode-menu, [class*="model-selector"], [class*="dropdown-menu"], .copy-button, .feedback-btn, [aria-hidden="true"], [data-test-id*="header"], h5, h6, [class*="screen-reader"]');
+  // Remove scripts, styles, menus, dropdowns, UI action buttons, copy buttons, feedback icons, screen-reader headers, and streaming cursors
+  const unwanted = clone.querySelectorAll('script, style, noscript, button, svg, [role="button"], [role="menu"], [role="listbox"], mat-menu, bard-mode-menu, [class*="model-selector"], [class*="dropdown-menu"], .copy-button, .feedback-btn, [aria-hidden="true"], [data-test-id*="header"], h5, h6, [class*="screen-reader"], [class*="cursor"], [class*="streaming-cursor"], [data-testid*="cursor"]');
   unwanted.forEach(el => {
     const text = el.textContent?.trim().toLowerCase() || '';
     if (
@@ -23,7 +23,8 @@ export function extractCleanText(element: Element | null): string {
       el.tagName === 'BUTTON' || el.tagName === 'SVG' ||
       el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'NOSCRIPT' ||
       el.getAttribute('role') === 'menu' || el.getAttribute('role') === 'listbox' ||
-      el.tagName === 'BARD-MODE-MENU' || el.tagName === 'MAT-MENU'
+      el.tagName === 'BARD-MODE-MENU' || el.tagName === 'MAT-MENU' ||
+      el.classList.contains('cursor') || el.classList.contains('streaming-cursor')
     ) {
       el.remove();
     }
@@ -39,7 +40,10 @@ export function extractCleanText(element: Element | null): string {
     }
   });
 
-  return (clone.textContent || '').trim().replace(/\n{3,}/g, '\n\n');
+  return (clone.textContent || '')
+    .replace(/[\u25ae\u2588\u25cf\u258b\u258c\u258d\u258e\u258f\u25a0\u25aa\u25ab\u200b]/g, '')
+    .trim()
+    .replace(/\n{3,}/g, '\n\n');
 }
 
 /**

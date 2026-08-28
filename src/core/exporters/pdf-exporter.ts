@@ -283,9 +283,14 @@ export class PDFExporter {
         throw new Error('Failed to access PDF sandbox document');
       }
 
-      // 1. Render isolated document into high-resolution canvas (scale: 2 for crisp vector-like text)
+      // 1. Calculate dynamic adaptive scale to prevent browser GPU canvas dimension overflow (>32,767px)
+      const docHeight = Math.max(iframeDoc.body.scrollHeight, iframeDoc.documentElement.scrollHeight, 1123);
+      const safeMaxCanvasHeight = 30000;
+      const targetScale = Math.min(2, Math.max(0.5, safeMaxCanvasHeight / docHeight));
+
+      // Render isolated document into canvas (scale 2 by default for crisp vector-like text, dynamically scaled for 50+ turn chats)
       const canvas = await html2canvas(iframeDoc.body, {
-        scale: 2,
+        scale: targetScale,
         useCORS: false,
         allowTaint: false,
         logging: false,
@@ -408,6 +413,10 @@ export class PDFExporter {
           pdfHeightPt - 10
         );
       }
+
+      // Explicitly clear canvas dimensions to release GPU memory buffers
+      canvas.width = 0;
+      canvas.height = 0;
 
       const blob = pdf.output('blob');
       return blob;

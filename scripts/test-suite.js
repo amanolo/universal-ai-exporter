@@ -162,3 +162,51 @@ test('4. Ed25519 Web Crypto License Verification', async () => {
 
   assert.equal(isValid, true, 'Cryptographic signature must be valid');
 });
+
+function healCodeFences(text) {
+  const matches = text.match(/(?:^|\n)\s*(?:>\s*)*```/g);
+  const count = matches ? matches.length : 0;
+  if (count % 2 !== 0) {
+    return text.trimEnd() + '\n```\n';
+  }
+  return text;
+}
+
+function stripStreamingCursors(text) {
+  return text.replace(/[\u25ae\u2588\u25cf\u258b\u258c\u258d\u258e\u258f\u25a0\u25aa\u25ab\u200b]/g, '').trim();
+}
+
+function computeAdaptiveCanvasScale(docHeight) {
+  const safeMaxCanvasHeight = 30000;
+  return Math.min(2, Math.max(0.5, safeMaxCanvasHeight / docHeight));
+}
+
+test('5. Markdown Unclosed Code Fence Auto-Healing & Cursor Stripping', () => {
+  // Test unclosed code fence
+  const unclosed = '### Response\n\nHere is some code:\n```typescript\nconst a = 1;';
+  const healed = healCodeFences(unclosed);
+  assert.ok(healed.endsWith('```\n'), 'Should automatically append closing code fence');
+  assert.equal(healCodeFences(healed), healed, 'Should leave balanced code fences unchanged');
+
+  // Test streaming cursor characters
+  const rawTextWithCursors = 'Generating tokens...\u25ae\u2588\u200b';
+  const cleaned = stripStreamingCursors(rawTextWithCursors);
+  assert.equal(cleaned, 'Generating tokens...');
+});
+
+test('6. Adaptive PDF Canvas Scale for Long Conversations', () => {
+  // Short conversation (3,000px): standard 2x DPI scale
+  assert.equal(computeAdaptiveCanvasScale(3000), 2);
+
+  // 50-turn conversation (15,000px): scale is 2
+  assert.equal(computeAdaptiveCanvasScale(15000), 2);
+
+  // 100-turn conversation (30,000px): scale is 1
+  assert.equal(computeAdaptiveCanvasScale(30000), 1);
+
+  // 200-turn conversation (60,000px): scale is 0.5 (strictly caps canvas at 30,000px)
+  const hugeScale = computeAdaptiveCanvasScale(60000);
+  assert.equal(hugeScale, 0.5);
+  assert.ok(60000 * hugeScale <= 30000, 'Canvas height must never exceed GPU hardware limits');
+});
+

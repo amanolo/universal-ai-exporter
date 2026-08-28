@@ -7,6 +7,18 @@
 import TurndownService from 'turndown';
 import { ConversationData, ExportOptions, ExtractedMessage } from '../types';
 
+/**
+ * Auto-heals unclosed markdown code fences (```) if exported during active AI streaming
+ */
+export function healCodeFences(text: string): string {
+  const matches = text.match(/(?:^|\n)\s*(?:>\s*)*```/g);
+  const count = matches ? matches.length : 0;
+  if (count % 2 !== 0) {
+    return text.trimEnd() + '\n```\n';
+  }
+  return text;
+}
+
 export class MarkdownExporter {
   private turndown: TurndownService;
 
@@ -116,7 +128,8 @@ export class MarkdownExporter {
       markdownContent = msg.contentText;
     }
 
-    parts.push(markdownContent.trim());
+    // Auto-heal unclosed code fences within message content if exported mid-stream
+    parts.push(healCodeFences(markdownContent.trim()));
     parts.push('');
 
     // 3. Claude Artifacts
@@ -188,6 +201,6 @@ export class MarkdownExporter {
     // Footer
     lines.push('\n\n*Exported with Universal AI Exporter — 100% Private & Local.*');
 
-    return lines.join('\n');
+    return healCodeFences(lines.join('\n'));
   }
 }
