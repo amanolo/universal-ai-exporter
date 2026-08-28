@@ -66,7 +66,7 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
 
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
-      rawPublicKeyBytes,
+      rawPublicKeyBytes as unknown as BufferSource,
       { name: 'Ed25519' },
       false,
       ['verify']
@@ -76,8 +76,8 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
     const isValid = await crypto.subtle.verify(
       { name: 'Ed25519' },
       cryptoKey,
-      signatureBytes,
-      payloadBytes
+      signatureBytes as unknown as BufferSource,
+      payloadBytes as unknown as BufferSource
     );
 
     if (isValid) {
