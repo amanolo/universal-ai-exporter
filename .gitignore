@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Production builds & release archives
+dist/
+releases/
+*.zip
+
+# Master cryptographic signing keys (NEVER commit developer private keys)
+.keys/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

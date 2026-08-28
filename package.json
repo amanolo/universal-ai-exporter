@@ -1,0 +1,44 @@
+{
+  "name": "universal-ai-exporter",
+  "version": "1.0.0",
+  "description": "Universal AI Exporter (PromptDoc) - 100% private, client-side browser extension to export ChatGPT, Claude, Perplexity, DeepSeek, and Gemini chats to PDF, Markdown, and CSV.",
+  "type": "module",
+  "scripts": {
+    "generate:icons": "node scripts/generate-icons.js",
+    "generate:license": "node scripts/generate-license.js",
+    "test:license": "node scripts/test-license.js",
+    "build": "node scripts/build.js",
+    "build:chromium": "node scripts/build.js --target chromium",
+    "build:firefox": "node scripts/build.js --target firefox",
+    "package": "npm run build && node scripts/package.js"
+  },
+  "keywords": [
+    "chatgpt-export",
+    "claude-export",
+    "perplexity-export",
+    "deepseek-export",
+    "gemini-export",
+    "markdown",
+    "pdf",
+    "csv",
+    "obsidian",
+    "notion"
+  ],
+  "author": "Antonis Manolioudakis",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.304",
+    "@types/node": "^22.13.5",
+    "@types/prismjs": "^1.26.5",
+    "@types/turndown": "^5.0.5",
+    "archiver": "^7.0.1",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
+    "prismjs": "^1.29.0",
+    "turndown": "^7.2.0"
+  }
+}

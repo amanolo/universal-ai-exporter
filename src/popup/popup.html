@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal AI Exporter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Universal AI Exporter</div>
+          <div class="brand-subtitle">PromptDoc &bull; v1.0.0</div>
+        </div>
+      </div>
+      <div id="pro-badge" class="badge badge-free">FREE TIER</div>
+    </header>
+
+    <!-- Platform Detection Status -->
+    <section class="platform-card">
+      <div class="platform-info">
+        <div class="status-indicator active" id="status-indicator"></div>
+        <div class="platform-text">
+          <div class="platform-name" id="platform-name">Detecting...</div>
+          <div class="platform-stats" id="platform-stats">Scanning active tab...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Export Action Tabs -->
+    <section class="tabs-nav">
+      <button class="tab-btn active" data-tab="pdf">📄 PDF</button>
+      <button class="tab-btn" data-tab="markdown">📝 Markdown</button>
+      <button class="tab-btn" data-tab="csv">📊 CSV</button>
+    </section>
+
+    <!-- Tab Content: PDF -->
+    <div class="tab-content active" id="tab-pdf">
+      <div class="form-group">
+        <label class="form-label">Select Document Theme:</label>
+        <div class="theme-selector">
+          <label class="theme-card active">
+            <input type="radio" name="pdf-theme" value="executive" checked>
+            <div class="theme-card-content">
+              <span class="theme-title">Executive</span>
+              <span class="theme-desc">Modern sans-serif</span>
+            </div>
+          </label>
+          <label class="theme-card">
+            <input type="radio" name="pdf-theme" value="midnight">
+            <div class="theme-card-content">
+              <span class="theme-title">Midnight</span>
+              <span class="theme-desc">OLED dark mode</span>
+            </div>
+          </label>
+          <label class="theme-card">
+            <input type="radio" name="pdf-theme" value="academic">
+            <div class="theme-card-content">
+              <span class="theme-title">Academic</span>
+              <span class="theme-desc">Formal serif paper</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="options-checklist">
+        <label class="check-item">
+          <input type="checkbox" id="opt-pdf-reasoning" checked>
+          <span>Include Reasoning Traces (<small>&lt;think&gt;</small>)</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="opt-pdf-citations" checked>
+          <span>Include Bibliography & Citations</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="opt-pdf-artifacts" checked>
+          <span>Include Claude Artifacts & Code</span>
+        </label>
+      </div>
+
+      <button class="btn btn-primary" id="btn-export-pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export Styled PDF</span>
+      </button>
+    </div>
+
+    <!-- Tab Content: Markdown -->
+    <div class="tab-content" id="tab-markdown">
+      <div class="options-checklist">
+        <label class="check-item">
+          <input type="checkbox" id="opt-md-frontmatter" checked>
+          <span>Obsidian & Notion YAML Frontmatter</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="opt-md-reasoning" checked>
+          <span>Obsidian Callouts for Reasoning (<small>[!note]</small>)</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="opt-md-citations" checked>
+          <span>Footnote Citations & Bibliography</span>
+        </label>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btn-export-md">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download .md</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-copy-md" title="Copy Markdown directly to clipboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Copy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Content: CSV -->
+    <div class="tab-content" id="tab-csv">
+      <div class="csv-banner">
+        <div class="csv-icon">📊</div>
+        <div class="csv-text">
+          <div class="csv-count" id="table-count-label">0 Tables Detected</div>
+          <div class="csv-desc">Exports clean RFC 4180 CSV with Excel UTF-8 BOM encoding.</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-export-csv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export Tables to CSV</span>
+      </button>
+    </div>
+
+    <!-- License Activation Section / Trigger -->
+    <div class="license-banner" id="license-banner">
+      <div class="license-text">
+        <div class="license-title">⭐ Upgrade to Pro Lifetime ($7)</div>
+        <div class="license-desc">Unlock Executive & Academic PDFs + DeepSeek Reasoning + All Themes.</div>
+      </div>
+      <button class="btn btn-pro" id="btn-open-license">Activate</button>
+    </div>
+
+    <!-- Pro License Activation Modal (Hidden by default) -->
+    <div class="modal-overlay" id="license-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">Activate Pro License</div>
+          <button class="modal-close" id="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-text">Enter your 100% offline license key below:</p>
+          <input type="text" id="license-key-input" class="license-input" placeholder="PDOC-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off">
+          <div id="license-feedback" class="license-feedback"></div>
+
+          <button class="btn btn-primary" id="btn-submit-key">Verify & Activate Instantly</button>
+
+          <div class="buy-links">
+            <span class="buy-label">Don't have a key?</span>
+            <div class="buy-buttons">
+              <a href="https://lemon.squeezy.com" target="_blank" class="buy-btn">💳 Buy Lifetime ($7)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Toast / Feedback -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Privacy Shield Footer -->
+    <footer class="footer">
+      <div class="privacy-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>🔒 100% Local & Private. 0 bytes leave your browser.</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+name: CI/CD Pipeline & Store Packager
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    name: Build, Verify & Package Extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Verify Cryptographic Offline Licensing Engine
+        run: npm run test:license
+
+      - name: Compile Extension (Chromium & Firefox)
+        run: npm run build
+
+      - name: Package Store ZIP Archives
+        run: npm run package
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-release-packages
+          path: |
+            releases/*.zip
+            docs/STORE_LISTING.md
+            CHROMEWEBSTORE.md
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies & Build
+        run: |
+          npm install
+          npm run package
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: releases/*.zip
+          body_path: docs/STORE_LISTING.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
