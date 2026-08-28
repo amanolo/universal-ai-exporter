@@ -57,9 +57,17 @@ export interface ConversationData {
 
 export type PDFTheme = 'executive' | 'midnight' | 'academic';
 
+export type ExportScopeMode = 'all' | 'latest' | 'last3' | 'custom';
+
+export interface ExportScope {
+  mode: ExportScopeMode;
+  selectedMessageIds?: string[];
+}
+
 export interface ExportOptions {
   format: 'pdf' | 'markdown' | 'csv';
   pdfTheme?: PDFTheme;
+  scope?: ExportScope;
   includeReasoning?: boolean;
   includeArtifacts?: boolean;
   includeCitations?: boolean;

@@ -89,13 +89,41 @@ export class GeminiAdapter implements AIPlatformAdapter {
 
     const totalTablesCount = messages.reduce((acc, m) => acc + (m.tables?.length || 0), 0);
 
+    // Detect active Gemini model dynamically from page DOM
+    let model = 'Gemini';
+    const candidates: string[] = [];
+
+    // Collect all candidate buttons and elements near composer and page
+    const allElements = Array.from(document.querySelectorAll(
+      'div[class*="input"] button, div[class*="prompt"] button, div[class*="bottom"] button, div[class*="composer"] button, bard-mode-menu button, button, [role="button"], mat-select, [data-test-id*="mode"], [data-test-id*="model"], [class*="model"], [class*="mode"]'
+    ));
+
+    for (const el of allElements) {
+      const rawText = (el.textContent || '').replace(/\u00A0/g, ' ').trim().replace(/\s+/g, ' ');
+      if (!rawText || rawText.length > 40) continue;
+      if (/send|upload|mic|voice|attach|search|menu|upgrade|pricing|star|trial/i.test(rawText)) continue;
+
+      // Match Flash Extended, Flash Thinking, 3.7 Flash, 2.0 Flash, Flash, Pro, Advanced, Ultra
+      const match = rawText.match(/((?:Flash\s+(?:Extended|Thinking|Pro)|(?:3\.[0-9]+|2\.[0-9]+|1\.[0-9]+)\s*Flash|Flash|Pro|Advanced|Ultra))/i);
+      if (match && match[1]) {
+        candidates.push(match[1].trim());
+      }
+    }
+
+    if (candidates.length > 0) {
+      // Prioritize the longest/most specific model descriptor (e.g. "Flash Extended" over just "Flash")
+      candidates.sort((a, b) => b.length - a.length);
+      const best = candidates[0];
+      model = best.toLowerCase().startsWith('gemini') ? best : `Gemini ${best}`;
+    }
+
     return {
       id: `gemini-${Date.now()}`,
       title,
       platform: this.platform,
       url: window.location.href,
       exportedAt: new Date().toISOString(),
-      model: 'Gemini 2.5 / Advanced',
+      model,
       messages,
       totalTablesCount
     };

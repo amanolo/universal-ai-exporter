@@ -37,6 +37,45 @@
           <div class="platform-stats" id="platform-stats">Scanning active tab...</div>
         </div>
       </div>
+      <button class="btn-micro" id="btn-header-reload" style="display: none; padding: 4px 10px; font-weight: 700;" title="Reload active tab">🔄 Reload</button>
+    </section>
+
+    <!-- Export Scope Selector -->
+    <section class="scope-section">
+      <div class="scope-header">
+        <span class="scope-title">Export Scope</span>
+        <span class="scope-summary" id="scope-summary">Full Chat</span>
+      </div>
+      <div class="scope-pills" id="scope-pills">
+        <button class="scope-pill active" data-scope="all" title="Export complete conversation">
+          <span>🌐 Full Chat</span>
+          <span class="scope-count" id="scope-count-all">0</span>
+        </button>
+        <button class="scope-pill" data-scope="latest" title="Export latest prompt + response">
+          <span>⚡ Latest</span>
+        </button>
+        <button class="scope-pill" data-scope="last3" title="Export last 3 turns">
+          <span>🕒 Last 3</span>
+        </button>
+        <button class="scope-pill" data-scope="custom" id="pill-custom" title="Cherry-pick specific messages">
+          <span>⚙️ Custom</span>
+          <span class="scope-chevron" id="custom-chevron">▾</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Custom Turns Drawer -->
+      <div class="custom-turns-drawer" id="custom-turns-drawer">
+        <div class="custom-turns-toolbar">
+          <div class="custom-turns-btns">
+            <button class="btn-micro" id="btn-scope-select-all">Select All</button>
+            <button class="btn-micro" id="btn-scope-clear-all">Clear</button>
+          </div>
+          <span class="custom-turns-stats" id="custom-turns-stats">0 selected</span>
+        </div>
+        <div class="turns-list" id="turns-list">
+          <div class="turns-empty">Scanning messages...</div>
+        </div>
+      </div>
     </section>
 
     <!-- Export Action Tabs -->
