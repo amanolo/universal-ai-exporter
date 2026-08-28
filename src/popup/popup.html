@@ -80,13 +80,69 @@
 
     <!-- Export Action Tabs -->
     <section class="tabs-nav">
-      <button class="tab-btn active" data-tab="pdf">📄 PDF</button>
-      <button class="tab-btn" data-tab="markdown">📝 Markdown</button>
+      <button class="tab-btn active" data-tab="markdown">📝 Markdown</button>
+      <button class="tab-btn" data-tab="pdf">📄 PDF</button>
       <button class="tab-btn" data-tab="csv">📊 CSV</button>
     </section>
 
+    <!-- Tab Content: Markdown -->
+    <div class="tab-content active" id="tab-markdown">
+      <div class="format-options-bar">
+        <span class="format-label">Markdown Format</span>
+        <button class="btn-micro btn-options-toggle" id="btn-toggle-md-opts" type="button" title="Configure formatting options">
+          <span>⚙️ Options</span>
+          <span class="scope-chevron" id="md-opts-chevron">▾</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Options Drawer -->
+      <div class="md-options-drawer" id="md-options-drawer">
+        <div class="options-checklist">
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-md-frontmatter">
+            <div class="check-text">
+              <span class="check-title">YAML Metadata Header</span>
+              <span class="check-desc">Adds title, date, platform & tags for Obsidian / Notion</span>
+            </div>
+          </label>
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-md-reasoning" checked>
+            <div class="check-text">
+              <span class="check-title">AI Reasoning Traces (<small>[!note]</small>)</span>
+              <span class="check-desc">Preserves model thinking steps in collapsible callouts</span>
+            </div>
+          </label>
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-md-citations" checked>
+            <div class="check-text">
+              <span class="check-title">Web Citations & Bibliography</span>
+              <span class="check-desc">Appends footnote links and comprehensive source lists</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-group btn-group-equal">
+        <button class="btn btn-primary" id="btn-copy-md" title="Copy Markdown directly to clipboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Copy</span>
+        </button>
+        <button class="btn btn-primary" id="btn-export-md" title="Save as .md file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Tab Content: PDF -->
-    <div class="tab-content active" id="tab-pdf">
+    <div class="tab-content" id="tab-pdf">
       <div class="form-group">
         <label class="form-label">Select Document Theme:</label>
         <div class="theme-selector">
@@ -139,42 +195,6 @@
       </button>
     </div>
 
-    <!-- Tab Content: Markdown -->
-    <div class="tab-content" id="tab-markdown">
-      <div class="options-checklist">
-        <label class="check-item">
-          <input type="checkbox" id="opt-md-frontmatter" checked>
-          <span>Obsidian & Notion YAML Frontmatter</span>
-        </label>
-        <label class="check-item">
-          <input type="checkbox" id="opt-md-reasoning" checked>
-          <span>Obsidian Callouts for Reasoning (<small>[!note]</small>)</span>
-        </label>
-        <label class="check-item">
-          <input type="checkbox" id="opt-md-citations" checked>
-          <span>Footnote Citations & Bibliography</span>
-        </label>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-primary" id="btn-export-md">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span>Download .md</span>
-        </button>
-        <button class="btn btn-secondary" id="btn-copy-md" title="Copy Markdown directly to clipboard">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <span>Copy</span>
-        </button>
-      </div>
-    </div>
-
     <!-- Tab Content: CSV -->
     <div class="tab-content" id="tab-csv">
       <div class="csv-banner">
@@ -213,7 +233,7 @@
         </div>
         <div class="modal-body">
           <p class="modal-text">Enter your 100% offline license key below:</p>
-          <input type="text" id="license-key-input" class="license-input" placeholder="PDOC-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off">
+          <input type="text" id="license-key-input" class="license-input" placeholder="UAIE-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off">
           <div id="license-feedback" class="license-feedback"></div>
 
           <button class="btn btn-primary" id="btn-submit-key">Verify & Activate Instantly</button>

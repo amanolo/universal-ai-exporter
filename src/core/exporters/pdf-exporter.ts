@@ -43,6 +43,9 @@ export class PDFExporter {
 
       let bodyHtml = msg.contentHtml || `<p>${msg.contentText}</p>`;
 
+      // Strip external decorative icons and Google Drive thumbnails to keep exports 100% local with zero CORS network requests
+      bodyHtml = bodyHtml.replace(/<img[^>]*src=["'][^"']*(?:googleusercontent\.com|googleapis\.com|gstatic\.com)[^"']*["'][^>]*>/gi, '');
+
       // DeepSeek Reasoning HTML
       let reasoningBlock = '';
       if (msg.reasoning && options.includeReasoning !== false) {
@@ -237,25 +240,46 @@ export class PDFExporter {
   ): Promise<Blob> {
     const html = this.generateDocumentHtml(conversation, theme, options);
 
-    // Create an attached offscreen container with exact standard width (794px = A4 at 96 DPI)
-    const container = document.createElement('div');
-    container.id = 'uaie-pdf-sandbox';
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '794px';
-    container.style.backgroundColor = theme === 'midnight' ? '#0f172a' : '#ffffff';
-    container.style.zIndex = '-9999';
-    container.innerHTML = html;
-    document.body.appendChild(container);
+    // Create an isolated offscreen iframe to render PDF without affecting the popup DOM
+    const iframe = document.createElement('iframe');
+    iframe.id = 'uaie-pdf-sandbox';
+    iframe.style.position = 'fixed';
+    iframe.style.left = '-9999px';
+    iframe.style.top = '-9999px';
+    iframe.style.width = '794px';
+    iframe.style.height = '1123px';
+    iframe.style.border = 'none';
+    iframe.style.visibility = 'hidden';
+    iframe.style.pointerEvents = 'none';
+    iframe.style.zIndex = '-99999';
+    document.body.appendChild(iframe);
 
     try {
-      // 1. Render complete document into high-resolution canvas (scale: 2 for crisp vector-like text)
-      const canvas = await html2canvas(container, {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error('Failed to access PDF sandbox document');
+      }
+
+      iframeDoc.open();
+      iframeDoc.write(html);
+      iframeDoc.close();
+
+      // 1. Render isolated document into high-resolution canvas (scale: 2 for crisp vector-like text)
+      const canvas = await html2canvas(iframeDoc.body, {
         scale: 2,
-        useCORS: true,
+        useCORS: false,
+        allowTaint: false,
         logging: false,
-        backgroundColor: theme === 'midnight' ? '#0f172a' : '#ffffff'
+        backgroundColor: theme === 'midnight' ? '#0f172a' : '#ffffff',
+        windowWidth: 794,
+        ignoreElements: (element) => {
+          // Ignore external decorative network images
+          if (element.tagName === 'IMG') {
+            const src = (element as HTMLImageElement).src || '';
+            if (src.startsWith('http')) return true;
+          }
+          return false;
+        }
       });
 
       // A4 dimensions in pt
@@ -326,23 +350,7 @@ export class PDFExporter {
       const blob = pdf.output('blob');
       return blob;
     } finally {
-      document.body.removeChild(container);
-    }
-  }
-
-  /**
-   * Opens the formatted document in a clean new window with browser print dialog
-   */
-  public static printDocument(conversation: ConversationData, theme: PDFTheme = 'executive'): void {
-    const html = this.generateDocumentHtml(conversation, theme);
-    const printWindow = window.open('', '_blank', 'width=850,height=1000');
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 500);
+      document.body.removeChild(iframe);
     }
   }
 }

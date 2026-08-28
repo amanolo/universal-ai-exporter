@@ -4,9 +4,10 @@
  */
 
 import { AdapterRegistry } from '../core/adapters/adapter-registry';
+import { ExtractionResult } from '../core/types';
 
 // Runtime message listener for popup queries
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse: (res: ExtractionResult) => void) => {
   (async () => {
     try {
       if (request.action === 'GET_CONVERSATION' || request.action === 'PING') {

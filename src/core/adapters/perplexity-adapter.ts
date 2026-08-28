@@ -40,11 +40,18 @@ export class PerplexityAdapter implements AIPlatformAdapter {
       if (seenUrls.has(url) || url.includes('perplexity.ai/search')) return;
       seenUrls.add(url);
 
+      let hostname = '';
+      try {
+        hostname = new URL(url).hostname;
+      } catch {
+        hostname = url;
+      }
+
       let cardTitle = card.querySelector('div[class*="title"], span[class*="title"], h4, div.font-medium')?.textContent?.trim() || '';
-      if (!cardTitle) cardTitle = linkEl.textContent?.trim() || new URL(url).hostname;
+      if (!cardTitle) cardTitle = linkEl.textContent?.trim() || hostname;
 
       let snippet = card.querySelector('div[class*="snippet"], p, div.text-xs')?.textContent?.trim();
-      let siteName = new URL(url).hostname.replace(/^www\./, '');
+      let siteName = hostname.replace(/^www\./, '');
 
       globalCitations.push({
         index: citationIndex++,
@@ -64,7 +71,7 @@ export class PerplexityAdapter implements AIPlatformAdapter {
       answerContainers.forEach((ansEl, idx) => {
         // Find corresponding user query if exists
         const queryEl = queryContainers[idx];
-        if (queryEl && idx === 0) {
+        if (queryEl) {
           const queryText = extractCleanText(queryEl);
           if (queryText) {
             messages.push({

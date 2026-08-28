@@ -173,7 +173,13 @@ export class MarkdownExporter {
       allCitations.forEach(c => {
         if (!seen.has(c.url)) {
           seen.add(c.url);
-          lines.push(`${c.index}. [${c.title}](${c.url}) — *${c.siteName || new URL(c.url).hostname}*`);
+          let hostname = '';
+          try {
+            hostname = new URL(c.url).hostname.replace(/^www\./, '');
+          } catch {
+            hostname = c.url;
+          }
+          lines.push(`${c.index}. [${c.title}](${c.url}) — *${c.siteName || hostname}*`);
         }
       });
       lines.push('\n');

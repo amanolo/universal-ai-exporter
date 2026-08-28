@@ -30,6 +30,7 @@ function showToast(message: string, durationMs = 3000): void {
 async function initPopup(): Promise<void> {
   await updateLicenseBadge();
   setupTabs();
+  setupMarkdownOptions();
   setupScopeControls();
   setupModal();
   setupExportButtons();
@@ -196,6 +197,19 @@ function setupTabs(): void {
       themeCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
     });
+  });
+}
+
+/**
+ * Sets up collapsible Markdown options drawer
+ */
+function setupMarkdownOptions(): void {
+  const toggleBtn = document.getElementById('btn-toggle-md-opts');
+  const drawer = document.getElementById('md-options-drawer');
+
+  toggleBtn?.addEventListener('click', () => {
+    const isOpen = drawer?.classList.toggle('active');
+    toggleBtn.classList.toggle('open', isOpen);
   });
 }
 
@@ -399,8 +413,15 @@ function updateScopeUI(): void {
   const btnMd = document.querySelector('#btn-export-md span');
   if (btnMd) {
     btnMd.textContent = currentScopeMode === 'all'
-      ? 'Download .md'
-      : `Download .md (${scopedCount})`;
+      ? 'Download'
+      : `Download (${scopedCount})`;
+  }
+
+  const btnCopyMd = document.querySelector('#btn-copy-md span');
+  if (btnCopyMd) {
+    btnCopyMd.textContent = currentScopeMode === 'all'
+      ? 'Copy'
+      : `Copy (${scopedCount})`;
   }
 
   const btnCsv = document.querySelector('#btn-export-csv span');
@@ -547,7 +568,7 @@ function setupExportButtons(): void {
 
     showToast('Generating Markdown...');
 
-    const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? true;
+    const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
     const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
     const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
 
@@ -578,8 +599,17 @@ function setupExportButtons(): void {
       return;
     }
 
+    const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
+    const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
+    const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+
     const exporter = new MarkdownExporter();
-    const markdown = exporter.exportToMarkdown(conv, { format: 'markdown', includeFrontmatter: true });
+    const markdown = exporter.exportToMarkdown(conv, {
+      format: 'markdown',
+      includeFrontmatter,
+      includeReasoning,
+      includeCitations
+    });
 
     await navigator.clipboard.writeText(markdown);
     showToast('📋 Copied Markdown to clipboard!');

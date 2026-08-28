@@ -109,42 +109,4 @@ export class LicenseManager {
       };
     }
   }
-
-  /**
-   * Deactivates / resets to Free Tier
-   */
-  public static async deactivate(): Promise<void> {
-    try {
-      if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-        await chrome.storage.local.remove([STORAGE_KEY, LEGACY_STORAGE_KEY]);
-      } else if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
-      }
-      this.cachedStatus = {
-        isPro: false,
-        tier: 'free'
-      };
-    } catch (e) {
-      console.error('Universal AI Exporter: Failed to clear license state', e);
-    }
-  }
-
-  /**
-   * Checks if a specific feature is accessible under the current tier
-   */
-  public static async isFeatureAllowed(feature: 'markdown_export' | 'pdf_executive' | 'pdf_academic' | 'pdf_midnight' | 'reasoning_trace' | 'citations_export' | 'custom_branding'): Promise<boolean> {
-    const status = await this.getStatus();
-    if (status.isPro) {
-      return true;
-    }
-
-    // Free features
-    if (feature === 'markdown_export') {
-      return true;
-    }
-
-    // All executive PDF, themes, reasoning traces, citations export are Pro features
-    return false;
-  }
 }

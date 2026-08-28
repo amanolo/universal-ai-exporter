@@ -3,7 +3,6 @@
  * Selects the optimal scraping engine based on active URL
  */
 
-import { AIPlatform } from '../types';
 import { AIPlatformAdapter } from './adapter-interface';
 import { ChatGPTAdapter } from './chatgpt-adapter';
 import { ClaudeAdapter } from './claude-adapter';
@@ -33,13 +32,5 @@ export class AdapterRegistry {
     }
     // Return universal fallback
     return this.adapters[this.adapters.length - 1];
-  }
-
-  /**
-   * Identifies the current AI platform name
-   */
-  public static detectPlatform(url: string = window.location.href): AIPlatform {
-    const adapter = this.getAdapter(url);
-    return adapter.platform;
   }
 }
