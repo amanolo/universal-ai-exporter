@@ -34,7 +34,7 @@
 
 - **Does this extension collect user data?** No.
 - **Does this extension transmit user data to external servers?** No. Zero outbound network requests are made.
-- **Does this extension use remote code or analytics?** No. All libraries (`jspdf`, `turndown`, `prismjs`) and verification code are bundled 100% locally.
+- **Does this extension use remote code or analytics?** No. All libraries (`jspdf`, `turndown`) and verification code are bundled 100% locally.
 - **Data handling:** All conversation extraction, PDF rendering, Markdown formatting, and cryptographic Ed25519 verification happen directly within the user's browser memory (RAM).
 
 ---

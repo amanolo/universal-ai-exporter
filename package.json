@@ -29,7 +29,6 @@
   "devDependencies": {
     "@types/chrome": "^0.0.304",
     "@types/node": "^22.13.5",
-    "@types/prismjs": "^1.26.5",
     "@types/turndown": "^5.0.5",
     "archiver": "^7.0.1",
     "esbuild": "^0.25.0",
@@ -38,7 +37,6 @@
   "dependencies": {
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
-    "prismjs": "^1.29.0",
     "turndown": "^7.2.0"
   }
 }

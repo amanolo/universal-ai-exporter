@@ -3,7 +3,7 @@
  * Uses the standard Web Crypto API (Ed25519) - 100% offline, zero server calls.
  */
 
-import { LicensePayload, LicenseStatus } from '../types';
+import { LicensePayload } from '../types';
 
 // Embedded Ed25519 Public Key (Raw 32 bytes in Base64)
 export const EMBEDDED_PUBLIC_KEY_BASE64 = 'Eyx8jkvlhboQcI+p6n9r5WK/5f9nw+Dq3YFD4PsD9nw=';

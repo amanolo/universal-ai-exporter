@@ -3,7 +3,7 @@
  * Manages UI tabs, Smart Scope selection, export actions, live platform detection, and offline Pro key activation.
  */
 
-import { ConversationData, ExportOptions, ExportScopeMode, ExtractedMessage, PDFTheme } from '../core/types';
+import { ConversationData, ExportScopeMode, ExtractedMessage, PDFTheme } from '../core/types';
 import { LicenseManager } from '../core/licensing/license-manager';
 import { MarkdownExporter } from '../core/exporters/markdown-exporter';
 import { PDFExporter } from '../core/exporters/pdf-exporter';
