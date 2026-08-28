@@ -25,29 +25,16 @@ export class GeminiAdapter implements AIPlatformAdapter {
     const title = extractConversationTitle('Gemini Conversation');
     const messages: ExtractedMessage[] = [];
 
-    // Select top-level turn containers in Gemini
-    let rawTurns = Array.from(document.querySelectorAll('user-query, model-response, div.conversation-turn, div[class*="user-query"], div[class*="model-response"]'));
+    // Gemini turns: user-query-container, model-response, message-content
+    const turnElements = document.querySelectorAll(
+      'user-query, model-response, message-content, div[class*="user-query"], div[class*="model-response"], div[class*="conversation-turn"]'
+    );
 
-    // If neither exists, fallback to message content
-    if (rawTurns.length === 0) {
-      rawTurns = Array.from(document.querySelectorAll('message-content, div.message-content'));
-    }
+    const targetTurns = turnElements.length > 0
+      ? turnElements
+      : document.querySelectorAll('main div.chat-history > div, main div[role="region"]');
 
-    // Deduplicate nested elements (ignore elements whose ancestor is already in rawTurns)
-    const topLevelTurns = rawTurns.filter(el => {
-      let parent = el.parentElement;
-      while (parent) {
-        if (rawTurns.includes(parent)) {
-          return false; // Child element, ignore
-        }
-        parent = parent.parentElement;
-      }
-      return true;
-    });
-
-    const processedTexts = new Set<string>();
-
-    topLevelTurns.forEach((turnEl, index) => {
+    targetTurns.forEach((turnEl, index) => {
       const tagName = turnEl.tagName.toLowerCase();
       const isUser = tagName.includes('user') ||
                      turnEl.className.includes('user') ||
@@ -58,23 +45,12 @@ export class GeminiAdapter implements AIPlatformAdapter {
       const clone = turnEl.cloneNode(true) as HTMLElement;
       normalizeLatexMath(clone);
 
-      // Remove accessibility headings like 'You said' or 'Gemini said'
-      clone.querySelectorAll('h5, h6, [class*="screen-reader"], [data-test-id*="header"], button, svg').forEach(el => {
-        const text = el.textContent?.trim().toLowerCase() || '';
-        if (text === 'you said' || text === 'gemini said' || text.startsWith('you said') || text.startsWith('gemini said') || el.tagName === 'BUTTON' || el.tagName === 'SVG') {
-          el.remove();
-        }
-      });
-
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      // Skip empty or duplicate consecutive messages
-      const normalizedKey = `${role}:${contentText.trim()}`;
-      if (contentText.trim() && !processedTexts.has(normalizedKey)) {
-        processedTexts.add(normalizedKey);
+      if (contentText.trim() || codeBlocks.length > 0) {
         messages.push({
           id: `gemini-msg-${index}-${Date.now()}`,
           role,

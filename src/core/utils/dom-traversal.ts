@@ -13,14 +13,9 @@ export function extractCleanText(element: Element | null): string {
 
   const clone = element.cloneNode(true) as HTMLElement;
 
-  // Remove UI action buttons, copy buttons, feedback icons, and screen-reader headers
-  const unwanted = clone.querySelectorAll('button, svg, [role="button"], .copy-button, .feedback-btn, [aria-hidden="true"], [data-test-id*="header"], h5, h6, [class*="screen-reader"]');
-  unwanted.forEach(el => {
-    const text = el.textContent?.trim().toLowerCase() || '';
-    if (text === 'you said' || text === 'gemini said' || text.startsWith('you said ') || text.startsWith('gemini said ') || el.tagName === 'BUTTON' || el.tagName === 'SVG') {
-      el.remove();
-    }
-  });
+  // Remove UI action buttons, copy buttons, feedback icons
+  const unwanted = clone.querySelectorAll('button, svg, [role="button"], .copy-button, .feedback-btn, [aria-hidden="true"]');
+  unwanted.forEach(el => el.remove());
 
   // Replace br with newlines
   clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
