@@ -66,7 +66,7 @@ export function signLicense(email, tier = 'pro', expires = 'lifetime') {
   const signature = crypto.sign(null, Buffer.from(payloadString, 'utf8'), privateKey);
   const signatureBase64 = signature.toString('base64url');
 
-  // Format: PDOC-PRO.<payloadBase64>.<signatureBase64>
+  // Format: UAIE-PRO.<payloadBase64>.<signatureBase64>
   const licenseKey = `UAIE-${tier.toUpperCase()}.${payloadBase64}.${signatureBase64}`;
   return { licenseKey, payload, keys };
 }

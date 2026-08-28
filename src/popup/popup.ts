@@ -98,11 +98,9 @@ async function initPopup(): Promise<void> {
 function onConversationLoaded(conv: ConversationData): void {
   const msgCount = conv.messages.length;
   const tableCount = conv.totalTablesCount;
-  const hasReasoning = conv.messages.some(m => !!m.reasoning);
 
   let details = `${msgCount} Messages`;
   if (tableCount > 0) details += ` • ${tableCount} Tables`;
-  if (hasReasoning) details += ` • Reasoning Trace`;
 
   const platformDisplayNames: Record<string, string> = {
     gemini: 'GOOGLE GEMINI',
@@ -456,7 +454,10 @@ function setupModal(): void {
 
   openBtn?.addEventListener('click', () => {
     modal?.classList.add('active');
-    if (keyInput) keyInput.value = '';
+    if (keyInput) {
+      keyInput.value = '';
+      keyInput.focus();
+    }
     if (feedback) {
       feedback.textContent = '';
       feedback.className = 'license-feedback';
@@ -465,6 +466,13 @@ function setupModal(): void {
 
   closeBtn?.addEventListener('click', () => {
     modal?.classList.remove('active');
+  });
+
+  // Close modal with Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+      modal.classList.remove('active');
+    }
   });
 
   submitBtn?.addEventListener('click', async () => {
@@ -502,6 +510,16 @@ function setupModal(): void {
   });
 }
 
+async function withLoading(btn: HTMLElement | null, fn: () => Promise<void>): Promise<void> {
+  if (!btn || btn.classList.contains('loading')) return;
+  btn.classList.add('loading');
+  try {
+    await fn();
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
 async function getOrFetchConversation(): Promise<ConversationData | null> {
   if (activeConversation && activeConversation.messages.length > 0) {
     return activeConversation;
@@ -526,129 +544,141 @@ async function getOrFetchConversation(): Promise<ConversationData | null> {
 
 function setupExportButtons(): void {
   // Export PDF
-  document.getElementById('btn-export-pdf')?.addEventListener('click', async () => {
-    const rawConv = await getOrFetchConversation();
-    if (!rawConv || rawConv.messages.length === 0) {
-      showToast('⚠️ Please reload chat tab to connect.');
-      return;
-    }
+  const btnPdf = document.getElementById('btn-export-pdf');
+  btnPdf?.addEventListener('click', () => {
+    withLoading(btnPdf, async () => {
+      const rawConv = await getOrFetchConversation();
+      if (!rawConv || rawConv.messages.length === 0) {
+        showToast('⚠️ Please reload chat tab to connect.');
+        return;
+      }
 
-    const conv = getScopedConversation(rawConv);
-    if (conv.messages.length === 0) {
-      showToast('⚠️ No messages selected in current scope.');
-      return;
-    }
+      const conv = getScopedConversation(rawConv);
+      if (conv.messages.length === 0) {
+        showToast('⚠️ No messages selected in current scope.');
+        return;
+      }
 
-    showToast('Preparing PDF document...');
+      showToast('Preparing PDF document...');
 
-    const themeRadio = document.querySelector('input[name="pdf-theme"]:checked') as HTMLInputElement;
-    const selectedTheme = (themeRadio?.value || 'executive') as PDFTheme;
+      const themeRadio = document.querySelector('input[name="pdf-theme"]:checked') as HTMLInputElement;
+      const selectedTheme = (themeRadio?.value || 'executive') as PDFTheme;
 
-    const includeReasoning = (document.getElementById('opt-pdf-reasoning') as HTMLInputElement)?.checked ?? true;
-    const includeCitations = (document.getElementById('opt-pdf-citations') as HTMLInputElement)?.checked ?? true;
-    const includeArtifacts = (document.getElementById('opt-pdf-artifacts') as HTMLInputElement)?.checked ?? true;
+      const includeReasoning = (document.getElementById('opt-pdf-reasoning') as HTMLInputElement)?.checked ?? true;
+      const includeCitations = (document.getElementById('opt-pdf-citations') as HTMLInputElement)?.checked ?? true;
+      const includeArtifacts = (document.getElementById('opt-pdf-artifacts') as HTMLInputElement)?.checked ?? true;
 
-    try {
-      const blob = await PDFExporter.exportToPDF(conv, selectedTheme, {
-        format: 'pdf',
-        pdfTheme: selectedTheme,
-        includeReasoning,
-        includeCitations,
-        includeArtifacts
-      });
+      try {
+        const blob = await PDFExporter.exportToPDF(conv, selectedTheme, {
+          format: 'pdf',
+          pdfTheme: selectedTheme,
+          includeReasoning,
+          includeCitations,
+          includeArtifacts
+        });
 
-      const filename = sanitizeFilename(conv.title, 'pdf');
-      downloadBlob(blob, filename, 'application/pdf');
-      showToast('✅ PDF exported successfully!');
-    } catch (e) {
-      console.error('PDF export failed:', e);
-      showToast('❌ PDF export failed.');
-    }
+        const filename = sanitizeFilename(conv.title, 'pdf');
+        downloadBlob(blob, filename, 'application/pdf');
+        showToast('✅ PDF exported successfully!');
+      } catch (e) {
+        console.error('PDF export failed:', e);
+        showToast('❌ PDF export failed.');
+      }
+    });
   });
 
   // Export Markdown
-  document.getElementById('btn-export-md')?.addEventListener('click', async () => {
-    const rawConv = await getOrFetchConversation();
-    if (!rawConv || rawConv.messages.length === 0) {
-      showToast('⚠️ Please reload chat tab to connect.');
-      return;
-    }
+  const btnMd = document.getElementById('btn-export-md');
+  btnMd?.addEventListener('click', () => {
+    withLoading(btnMd, async () => {
+      const rawConv = await getOrFetchConversation();
+      if (!rawConv || rawConv.messages.length === 0) {
+        showToast('⚠️ Please reload chat tab to connect.');
+        return;
+      }
 
-    const conv = getScopedConversation(rawConv);
-    if (conv.messages.length === 0) {
-      showToast('⚠️ No messages selected in current scope.');
-      return;
-    }
+      const conv = getScopedConversation(rawConv);
+      if (conv.messages.length === 0) {
+        showToast('⚠️ No messages selected in current scope.');
+        return;
+      }
 
-    showToast('Generating Markdown...');
+      showToast('Generating Markdown...');
 
-    const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
-    const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
-    const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+      const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
+      const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
+      const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
 
-    const exporter = new MarkdownExporter();
-    const markdown = exporter.exportToMarkdown(conv, {
-      format: 'markdown',
-      includeFrontmatter,
-      includeReasoning,
-      includeCitations
+      const exporter = new MarkdownExporter();
+      const markdown = exporter.exportToMarkdown(conv, {
+        format: 'markdown',
+        includeFrontmatter,
+        includeReasoning,
+        includeCitations
+      });
+
+      const filename = sanitizeFilename(conv.title, 'md');
+      downloadBlob(markdown, filename, 'text/markdown');
+      showToast('✅ Markdown saved!');
     });
-
-    const filename = sanitizeFilename(conv.title, 'md');
-    downloadBlob(markdown, filename, 'text/markdown');
-    showToast('✅ Markdown saved!');
   });
 
   // Copy Markdown to Clipboard
-  document.getElementById('btn-copy-md')?.addEventListener('click', async () => {
-    const rawConv = await getOrFetchConversation();
-    if (!rawConv || rawConv.messages.length === 0) {
-      showToast('⚠️ Please reload chat tab to connect.');
-      return;
-    }
+  const btnCopyMd = document.getElementById('btn-copy-md');
+  btnCopyMd?.addEventListener('click', () => {
+    withLoading(btnCopyMd, async () => {
+      const rawConv = await getOrFetchConversation();
+      if (!rawConv || rawConv.messages.length === 0) {
+        showToast('⚠️ Please reload chat tab to connect.');
+        return;
+      }
 
-    const conv = getScopedConversation(rawConv);
-    if (conv.messages.length === 0) {
-      showToast('⚠️ No messages selected in current scope.');
-      return;
-    }
+      const conv = getScopedConversation(rawConv);
+      if (conv.messages.length === 0) {
+        showToast('⚠️ No messages selected in current scope.');
+        return;
+      }
 
-    const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
-    const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
-    const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+      const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
+      const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
+      const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
 
-    const exporter = new MarkdownExporter();
-    const markdown = exporter.exportToMarkdown(conv, {
-      format: 'markdown',
-      includeFrontmatter,
-      includeReasoning,
-      includeCitations
+      const exporter = new MarkdownExporter();
+      const markdown = exporter.exportToMarkdown(conv, {
+        format: 'markdown',
+        includeFrontmatter,
+        includeReasoning,
+        includeCitations
+      });
+
+      await navigator.clipboard.writeText(markdown);
+      showToast('📋 Copied Markdown to clipboard!');
     });
-
-    await navigator.clipboard.writeText(markdown);
-    showToast('📋 Copied Markdown to clipboard!');
   });
 
   // Export CSV
-  document.getElementById('btn-export-csv')?.addEventListener('click', async () => {
-    const rawConv = await getOrFetchConversation();
-    if (!rawConv || rawConv.totalTablesCount === 0) {
-      showToast('⚠️ No tables found in this conversation.');
-      return;
-    }
+  const btnCsv = document.getElementById('btn-export-csv');
+  btnCsv?.addEventListener('click', () => {
+    withLoading(btnCsv, async () => {
+      const rawConv = await getOrFetchConversation();
+      if (!rawConv || rawConv.totalTablesCount === 0) {
+        showToast('⚠️ No tables found in this conversation.');
+        return;
+      }
 
-    const conv = getScopedConversation(rawConv);
-    if (conv.totalTablesCount === 0) {
-      showToast('⚠️ No tables found in the selected scope.');
-      return;
-    }
+      const conv = getScopedConversation(rawConv);
+      if (conv.totalTablesCount === 0) {
+        showToast('⚠️ No tables found in the selected scope.');
+        return;
+      }
 
-    showToast('Extracting tables...');
+      showToast('Extracting tables...');
 
-    const result = CSVExporter.exportTables(conv);
-    const filename = sanitizeFilename(`${conv.title}-tables`, 'csv');
-    downloadBlob(result.csvContent, filename, 'text/csv');
-    showToast(`✅ Exported ${result.count} table(s) to CSV!`);
+      const result = CSVExporter.exportTables(conv);
+      const filename = sanitizeFilename(`${conv.title}-tables`, 'csv');
+      downloadBlob(result.csvContent, filename, 'text/csv');
+      showToast(`✅ Exported ${result.count} table(s) to CSV!`);
+    });
   });
 }
 

@@ -13,11 +13,18 @@ export function extractCleanText(element: Element | null): string {
 
   const clone = element.cloneNode(true) as HTMLElement;
 
-  // Remove UI action buttons, copy buttons, feedback icons, and screen-reader headers
-  const unwanted = clone.querySelectorAll('button, svg, [role="button"], .copy-button, .feedback-btn, [aria-hidden="true"], [data-test-id*="header"], h5, h6, [class*="screen-reader"]');
+  // Remove scripts, styles, menus, dropdowns, UI action buttons, copy buttons, feedback icons, and screen-reader headers
+  const unwanted = clone.querySelectorAll('script, style, noscript, button, svg, [role="button"], [role="menu"], [role="listbox"], mat-menu, bard-mode-menu, [class*="model-selector"], [class*="dropdown-menu"], .copy-button, .feedback-btn, [aria-hidden="true"], [data-test-id*="header"], h5, h6, [class*="screen-reader"]');
   unwanted.forEach(el => {
     const text = el.textContent?.trim().toLowerCase() || '';
-    if (text === 'you said' || text === 'gemini said' || text.startsWith('you said') || text.startsWith('gemini said') || el.tagName === 'BUTTON' || el.tagName === 'SVG') {
+    if (
+      text === 'you said' || text === 'gemini said' ||
+      text.startsWith('you said') || text.startsWith('gemini said') ||
+      el.tagName === 'BUTTON' || el.tagName === 'SVG' ||
+      el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'NOSCRIPT' ||
+      el.getAttribute('role') === 'menu' || el.getAttribute('role') === 'listbox' ||
+      el.tagName === 'BARD-MODE-MENU' || el.tagName === 'MAT-MENU'
+    ) {
       el.remove();
     }
   });

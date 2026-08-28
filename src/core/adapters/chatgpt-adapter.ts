@@ -60,12 +60,26 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
       const clone = contentEl.cloneNode(true) as HTMLElement;
       normalizeLatexMath(clone);
 
+      // Extract ChatGPT Reasoning / Thinking Process (OpenAI o1 / o3-mini models)
+      let reasoning: string | undefined;
+      const thinkContainer = clone.querySelector(
+        'div[class*="thought"], div[class*="reasoning"], [data-testid*="thought"], details[class*="thought"], div[class*="collapse"]'
+      );
+
+      if (thinkContainer) {
+        const thinkText = extractCleanText(thinkContainer);
+        if (thinkText.length > 0) {
+          reasoning = thinkText;
+          thinkContainer.remove();
+        }
+      }
+
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      if (contentText.trim() || codeBlocks.length > 0) {
+      if (contentText.trim() || reasoning || codeBlocks.length > 0) {
         messages.push({
           id: `chatgpt-msg-${index}-${Date.now()}`,
           role,
@@ -73,6 +87,7 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
           contentHtml,
           contentText,
           codeBlocks,
+          reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
           tables: tables.length > 0 ? tables : undefined
         });
       }

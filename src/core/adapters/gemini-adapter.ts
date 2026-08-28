@@ -25,12 +25,14 @@ export class GeminiAdapter implements AIPlatformAdapter {
     const title = extractConversationTitle('Gemini Conversation');
     const messages: ExtractedMessage[] = [];
 
-    // Select top-level turn containers in Gemini
-    let rawTurns = Array.from(document.querySelectorAll('user-query, model-response, div.conversation-turn, div[class*="user-query"], div[class*="model-response"]'));
+    // Select top-level turn containers in Gemini (excluding floating menus and navigation)
+    let rawTurns = Array.from(document.querySelectorAll('user-query, model-response, div.conversation-turn, div[class*="user-query"], div[class*="model-response"]'))
+      .filter(el => !el.closest('bard-mode-menu, [role="menu"], [role="listbox"], mat-menu, [class*="model-selector"], header, nav'));
 
     // If neither exists, fallback to message content
     if (rawTurns.length === 0) {
-      rawTurns = Array.from(document.querySelectorAll('message-content, div.message-content'));
+      rawTurns = Array.from(document.querySelectorAll('message-content, div.message-content'))
+        .filter(el => !el.closest('bard-mode-menu, [role="menu"], [role="listbox"], mat-menu, [class*="model-selector"], header, nav'));
     }
 
     // Deduplicate nested elements (ignore elements whose ancestor is already in rawTurns)
@@ -58,13 +60,24 @@ export class GeminiAdapter implements AIPlatformAdapter {
       const clone = turnEl.cloneNode(true) as HTMLElement;
       normalizeLatexMath(clone);
 
-      // Remove accessibility headings like 'You said' or 'Gemini said'
-      clone.querySelectorAll('h5, h6, [class*="screen-reader"], [data-test-id*="header"], button, svg').forEach(el => {
-        const text = el.textContent?.trim().toLowerCase() || '';
-        if (text === 'you said' || text === 'gemini said' || text.startsWith('you said') || text.startsWith('gemini said') || el.tagName === 'BUTTON' || el.tagName === 'SVG') {
-          el.remove();
-        }
+      // Remove accessibility headings, action buttons, menus, and dropdowns
+      clone.querySelectorAll('h5, h6, [class*="screen-reader"], [data-test-id*="header"], button, svg, [role="menu"], [role="listbox"], bard-mode-menu, mat-menu, [class*="model-selector"]').forEach(el => {
+        el.remove();
       });
+
+      // Extract Gemini Reasoning / Thought Box (e.g. Gemini 2.0 Flash Thinking)
+      let reasoning: string | undefined;
+      const thinkContainer = clone.querySelector(
+        'thought-box, [data-test-id="thought-box"], expandable-thought, details.thought-container'
+      );
+
+      if (thinkContainer) {
+        const thinkText = extractCleanText(thinkContainer);
+        if (thinkText.length > 0) {
+          reasoning = thinkText;
+          thinkContainer.remove();
+        }
+      }
 
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
@@ -73,7 +86,7 @@ export class GeminiAdapter implements AIPlatformAdapter {
 
       // Skip empty or duplicate consecutive messages
       const normalizedKey = `${role}:${contentText.trim()}`;
-      if (contentText.trim() && !processedTexts.has(normalizedKey)) {
+      if ((contentText.trim() || reasoning || codeBlocks.length > 0) && !processedTexts.has(normalizedKey)) {
         processedTexts.add(normalizedKey);
         messages.push({
           id: `gemini-msg-${index}-${Date.now()}`,
@@ -82,6 +95,7 @@ export class GeminiAdapter implements AIPlatformAdapter {
           contentHtml,
           contentText,
           codeBlocks,
+          reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
           tables: tables.length > 0 ? tables : undefined
         });
       }

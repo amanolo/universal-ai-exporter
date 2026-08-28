@@ -8,6 +8,15 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { ConversationData, ExportOptions, PDFTheme } from '../types';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export class PDFExporter {
   /**
    * Generates the styled HTML document for PDF rendering
@@ -46,7 +55,7 @@ export class PDFExporter {
       // Strip external decorative icons and Google Drive thumbnails to keep exports 100% local with zero CORS network requests
       bodyHtml = bodyHtml.replace(/<img[^>]*src=["'][^"']*(?:googleusercontent\.com|googleapis\.com|gstatic\.com)[^"']*["'][^>]*>/gi, '');
 
-      // DeepSeek Reasoning HTML
+      // AI Reasoning HTML
       let reasoningBlock = '';
       if (msg.reasoning && options.includeReasoning !== false) {
         reasoningBlock = `
@@ -54,7 +63,7 @@ export class PDFExporter {
             <div style="font-weight: 700; color: ${isDark ? '#facc15' : '#a16207'}; margin-bottom: 6px;">
               🧠 Reasoning Process (${msg.author})
             </div>
-            <div style="color: ${isDark ? '#cbd5e1' : '#475569'}; white-space: pre-wrap; font-family: monospace; font-size: 12px; line-height: 1.5;">${msg.reasoning}</div>
+            <div style="color: ${isDark ? '#cbd5e1' : '#475569'}; white-space: pre-wrap; font-family: monospace; font-size: 12px; line-height: 1.5;">${escapeHtml(msg.reasoning)}</div>
           </div>
         `;
       }
@@ -64,8 +73,8 @@ export class PDFExporter {
       if (msg.artifacts && msg.artifacts.length > 0 && options.includeArtifacts !== false) {
         artifactsBlock = msg.artifacts.map(art => `
           <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 6px; background: ${codeBg}; padding: 12px; break-inside: avoid;">
-            <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px;">📦 ARTIFACT: ${art.title} (${art.type})</div>
-            <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;"><code>${art.content}</code></pre>
+            <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px;">📦 ARTIFACT: ${escapeHtml(art.title)} (${art.type})</div>
+            <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;"><code>${escapeHtml(art.content)}</code></pre>
           </div>
         `).join('');
       }
@@ -231,7 +240,8 @@ export class PDFExporter {
 
   /**
    * Generates and downloads a clean, multi-page PDF using high-DPI canvas slicing.
-   * Eliminates blank pages and renders 100% Greek / Unicode characters accurately.
+   * Eliminates blank pages, prevents cut-off text with smart card boundary snapping,
+   * and renders 100% Greek / Unicode characters accurately.
    */
   public static async exportToPDF(
     conversation: ConversationData,
@@ -255,14 +265,23 @@ export class PDFExporter {
     document.body.appendChild(iframe);
 
     try {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => resolve(), 1500); // Fallback if onload doesn't fire
+        iframe.onload = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        iframe.onerror = (e) => {
+          clearTimeout(timeout);
+          reject(e);
+        };
+        iframe.srcdoc = html;
+      });
+
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!iframeDoc) {
+      if (!iframeDoc || !iframeDoc.body) {
         throw new Error('Failed to access PDF sandbox document');
       }
-
-      iframeDoc.open();
-      iframeDoc.write(html);
-      iframeDoc.close();
 
       // 1. Render isolated document into high-resolution canvas (scale: 2 for crisp vector-like text)
       const canvas = await html2canvas(iframeDoc.body, {
@@ -292,8 +311,50 @@ export class PDFExporter {
 
       // Calculate how many canvas pixels correspond to one A4 printable height
       const pageCanvasHeight = (canvas.width * printHeightPt) / printWidthPt;
-      const totalPages = Math.ceil(canvas.height / pageCanvasHeight) || 1;
 
+      // Measure block-level message card boundaries for element-aware slice snapping
+      const scale = canvas.width / (iframeDoc.body.clientWidth || 794);
+      const bodyRect = iframeDoc.body.getBoundingClientRect();
+      const blockElements = Array.from(iframeDoc.querySelectorAll('.message-turn, .header-banner'));
+      const blockBounds = blockElements.map(el => {
+        const r = el.getBoundingClientRect();
+        return {
+          top: (r.top - bodyRect.top) * scale,
+          bottom: (r.bottom - bodyRect.top) * scale
+        };
+      });
+
+      // Compute smart slice positions
+      const pageSlices: { y: number; height: number }[] = [];
+      let currentY = 0;
+
+      while (currentY < canvas.height) {
+        let nextY = currentY + pageCanvasHeight;
+
+        if (nextY >= canvas.height) {
+          pageSlices.push({ y: currentY, height: canvas.height - currentY });
+          break;
+        }
+
+        // Check if a block element straddles nextY
+        let snapY = nextY;
+        for (const block of blockBounds) {
+          if (block.top < nextY && block.bottom > nextY) {
+            const reduction = nextY - block.top;
+            // Snap to block top if reduction is less than 22% of page height
+            if (block.top > currentY && reduction < pageCanvasHeight * 0.22) {
+              snapY = block.top;
+              break;
+            }
+          }
+        }
+
+        const sliceHeight = Math.max(snapY - currentY, pageCanvasHeight * 0.5);
+        pageSlices.push({ y: currentY, height: sliceHeight });
+        currentY += sliceHeight;
+      }
+
+      const totalPages = pageSlices.length || 1;
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
@@ -301,14 +362,15 @@ export class PDFExporter {
         compress: true
       });
 
-      // 2. Slice master canvas into individual pages
+      // 2. Slice master canvas into individual pages based on smart boundaries
       for (let page = 0; page < totalPages; page++) {
         if (page > 0) {
           pdf.addPage();
         }
 
-        const sourceY = page * pageCanvasHeight;
-        const sourceHeight = Math.min(pageCanvasHeight, canvas.height - sourceY);
+        const slice = pageSlices[page];
+        const sourceY = slice.y;
+        const sourceHeight = slice.height;
 
         // Create page slice canvas
         const pageCanvas = document.createElement('canvas');
@@ -350,7 +412,9 @@ export class PDFExporter {
       const blob = pdf.output('blob');
       return blob;
     } finally {
-      document.body.removeChild(iframe);
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
     }
   }
 }

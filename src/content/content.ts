@@ -18,9 +18,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse: (res: Extr
       }
 
       sendResponse({ success: false, error: 'Unknown action' });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Extraction failed';
       console.error('Universal AI Exporter: Extraction failed', err);
-      sendResponse({ success: false, error: err.message || 'Extraction failed' });
+      sendResponse({ success: false, error: message });
     }
   })();
 

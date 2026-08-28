@@ -108,15 +108,15 @@
           <label class="check-item check-item-rich">
             <input type="checkbox" id="opt-md-reasoning" checked>
             <div class="check-text">
-              <span class="check-title">AI Reasoning Traces (<small>[!note]</small>)</span>
-              <span class="check-desc">Preserves model thinking steps in collapsible callouts</span>
+              <span class="check-title">Model Reasoning Steps</span>
+              <span class="check-desc">Preserves step-by-step thinking in collapsible callouts (when available)</span>
             </div>
           </label>
           <label class="check-item check-item-rich">
             <input type="checkbox" id="opt-md-citations" checked>
             <div class="check-text">
-              <span class="check-title">Web Citations & Bibliography</span>
-              <span class="check-desc">Appends footnote links and comprehensive source lists</span>
+              <span class="check-title">Web Sources & Citations</span>
+              <span class="check-desc">Appends footnote links and reference bibliography (when available)</span>
             </div>
           </label>
         </div>
@@ -184,22 +184,22 @@
           <label class="check-item check-item-rich">
             <input type="checkbox" id="opt-pdf-reasoning" checked>
             <div class="check-text">
-              <span class="check-title">AI Reasoning Traces (<small>&lt;think&gt;</small>)</span>
-              <span class="check-desc">Preserves model thinking steps in highlighted callouts (DeepSeek)</span>
+              <span class="check-title">Model Reasoning Steps</span>
+              <span class="check-desc">Renders highlighted thinking boxes above responses (when available)</span>
             </div>
           </label>
           <label class="check-item check-item-rich">
             <input type="checkbox" id="opt-pdf-citations" checked>
             <div class="check-text">
-              <span class="check-title">Web Citations & Bibliography</span>
-              <span class="check-desc">Appends footnote links and comprehensive source lists (Perplexity)</span>
+              <span class="check-title">Web Sources & Citations</span>
+              <span class="check-desc">Appends footnote links and reference bibliography (when available)</span>
             </div>
           </label>
           <label class="check-item check-item-rich">
             <input type="checkbox" id="opt-pdf-artifacts" checked>
             <div class="check-text">
-              <span class="check-title">Claude Artifacts & Code</span>
-              <span class="check-desc">Includes isolated code snippets, documents & rendered components</span>
+              <span class="check-title">Code & Artifact Panels</span>
+              <span class="check-desc">Includes isolated code blocks and rendered document components</span>
             </div>
           </label>
         </div>
@@ -245,16 +245,16 @@
     </div>
 
     <!-- Pro License Activation Modal (Hidden by default) -->
-    <div class="modal-overlay" id="license-modal">
+    <div class="modal-overlay" id="license-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <div class="modal-header">
-          <div class="modal-title">Activate Pro License</div>
-          <button class="modal-close" id="btn-close-modal">&times;</button>
+          <div class="modal-title" id="modal-title">Activate Pro License</div>
+          <button class="modal-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
         </div>
         <div class="modal-body">
           <p class="modal-text">Enter your 100% offline license key below:</p>
-          <input type="text" id="license-key-input" class="license-input" placeholder="UAIE-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off">
-          <div id="license-feedback" class="license-feedback"></div>
+          <input type="text" id="license-key-input" class="license-input" placeholder="UAIE-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off" aria-label="License key">
+          <div id="license-feedback" class="license-feedback" aria-live="polite"></div>
 
           <button class="btn btn-primary" id="btn-submit-key">Verify & Activate Instantly</button>
 
@@ -269,7 +269,7 @@
     </div>
 
     <!-- Status Toast / Feedback -->
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <!-- Privacy Shield Footer -->
     <footer class="footer">

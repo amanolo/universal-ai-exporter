@@ -68,12 +68,26 @@ export class ClaudeAdapter implements AIPlatformAdapter {
         }
       });
 
+      // Extract Claude 3.7 Thinking / Extended Thought traces
+      let reasoning: string | undefined;
+      const thinkContainer = clone.querySelector(
+        'div[class*="thinking"], div[class*="thought"], [data-testid*="thought"], details[class*="thought"], button[aria-label*="thought"]'
+      );
+
+      if (thinkContainer) {
+        const thinkText = extractCleanText(thinkContainer);
+        if (thinkText.length > 0) {
+          reasoning = thinkText;
+          thinkContainer.remove();
+        }
+      }
+
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      if (contentText.trim() || codeBlocks.length > 0 || artifacts.length > 0) {
+      if (contentText.trim() || reasoning || codeBlocks.length > 0 || artifacts.length > 0) {
         messages.push({
           id: `claude-msg-${index}-${Date.now()}`,
           role,
@@ -81,6 +95,7 @@ export class ClaudeAdapter implements AIPlatformAdapter {
           contentHtml,
           contentText,
           codeBlocks,
+          reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
           artifacts: artifacts.length > 0 ? artifacts : undefined,
           tables: tables.length > 0 ? tables : undefined
         });

@@ -107,7 +107,7 @@ To generate valid offline Pro license keys for testing or distribution:
 node scripts/generate-license.js user@example.com pro lifetime
 ```
 
-The script will output a signed token (e.g. `PDOC-PRO.eyJlbWFpb...`). Paste this token into the popup's **"Activate Pro License"** modal to instantly unlock Pro features in memory (verified locally in `<1ms` with Web Crypto).
+The script will output a signed token (e.g. `UAIE-PRO.eyJlbWFpb...`). Paste this token into the popup's **"Activate Pro License"** modal to instantly unlock Pro features in memory (verified locally in `<1ms` with Web Crypto).
 
 ---
 

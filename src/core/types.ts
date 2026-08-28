@@ -73,7 +73,6 @@ export interface ExportOptions {
   includeCitations?: boolean;
   includeFrontmatter?: boolean;
   selectedTableIndex?: number; // For CSV: -1 for all tables, or specific table index
-  customHeader?: string;
 }
 
 export interface LicensePayload {
