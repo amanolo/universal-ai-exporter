@@ -80,8 +80,8 @@
 
     <!-- Export Action Tabs -->
     <section class="tabs-nav">
-      <button class="tab-btn active" data-tab="markdown">📝 Markdown</button>
       <button class="tab-btn" data-tab="pdf">📄 PDF</button>
+      <button class="tab-btn active" data-tab="markdown">📝 Markdown</button>
       <button class="tab-btn" data-tab="csv">📊 CSV</button>
     </section>
 
@@ -170,19 +170,39 @@
         </div>
       </div>
 
-      <div class="options-checklist">
-        <label class="check-item">
-          <input type="checkbox" id="opt-pdf-reasoning" checked>
-          <span>Include Reasoning Traces (<small>&lt;think&gt;</small>)</span>
-        </label>
-        <label class="check-item">
-          <input type="checkbox" id="opt-pdf-citations" checked>
-          <span>Include Bibliography & Citations</span>
-        </label>
-        <label class="check-item">
-          <input type="checkbox" id="opt-pdf-artifacts" checked>
-          <span>Include Claude Artifacts & Code</span>
-        </label>
+      <div class="format-options-bar">
+        <span class="format-label">Document Elements</span>
+        <button class="btn-micro btn-options-toggle" id="btn-toggle-pdf-opts" type="button" title="Configure PDF options">
+          <span>⚙️ Options</span>
+          <span class="scope-chevron" id="pdf-opts-chevron">▾</span>
+        </button>
+      </div>
+
+      <!-- Collapsible PDF Options Drawer -->
+      <div class="pdf-options-drawer" id="pdf-options-drawer">
+        <div class="options-checklist">
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-pdf-reasoning" checked>
+            <div class="check-text">
+              <span class="check-title">AI Reasoning Traces (<small>&lt;think&gt;</small>)</span>
+              <span class="check-desc">Preserves model thinking steps in highlighted callouts (DeepSeek)</span>
+            </div>
+          </label>
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-pdf-citations" checked>
+            <div class="check-text">
+              <span class="check-title">Web Citations & Bibliography</span>
+              <span class="check-desc">Appends footnote links and comprehensive source lists (Perplexity)</span>
+            </div>
+          </label>
+          <label class="check-item check-item-rich">
+            <input type="checkbox" id="opt-pdf-artifacts" checked>
+            <div class="check-text">
+              <span class="check-title">Claude Artifacts & Code</span>
+              <span class="check-desc">Includes isolated code snippets, documents & rendered components</span>
+            </div>
+          </label>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="btn-export-pdf">

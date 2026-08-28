@@ -540,7 +540,8 @@ body {
   transform: rotate(180deg);
 }
 
-.md-options-drawer {
+.md-options-drawer,
+.pdf-options-drawer {
   display: none;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
@@ -549,7 +550,8 @@ body {
   animation: fadeIn 0.15s ease-out;
 }
 
-.md-options-drawer.active {
+.md-options-drawer.active,
+.pdf-options-drawer.active {
   display: block;
 }
 

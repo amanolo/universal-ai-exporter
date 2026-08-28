@@ -31,6 +31,7 @@ async function initPopup(): Promise<void> {
   await updateLicenseBadge();
   setupTabs();
   setupMarkdownOptions();
+  setupPdfOptions();
   setupScopeControls();
   setupModal();
   setupExportButtons();
@@ -206,6 +207,19 @@ function setupTabs(): void {
 function setupMarkdownOptions(): void {
   const toggleBtn = document.getElementById('btn-toggle-md-opts');
   const drawer = document.getElementById('md-options-drawer');
+
+  toggleBtn?.addEventListener('click', () => {
+    const isOpen = drawer?.classList.toggle('active');
+    toggleBtn.classList.toggle('open', isOpen);
+  });
+}
+
+/**
+ * Sets up collapsible PDF options drawer
+ */
+function setupPdfOptions(): void {
+  const toggleBtn = document.getElementById('btn-toggle-pdf-opts');
+  const drawer = document.getElementById('pdf-options-drawer');
 
   toggleBtn?.addEventListener('click', () => {
     const isOpen = drawer?.classList.toggle('active');
