@@ -210,7 +210,7 @@ export class PDFExporter {
           </div>
           <div style="text-align: right; font-size: 10px; color: ${mutedCol}; line-height: 1.4;">
             <div style="font-weight: 700; color: ${textCol};">UNIVERSAL AI EXPORTER</div>
-            <div>PROMPTDOC &bull; 100% PRIVATE</div>
+            <div>100% PRIVATE &bull; LOCAL</div>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export class PDFExporter {
         </div>
 
         <div style="margin-top: 28px; padding-top: 12px; border-top: 1px solid ${cardBorderUser}; font-size: 10px; color: ${mutedCol}; text-align: center; break-inside: avoid;">
-          Generated with <strong>Universal AI Exporter (PromptDoc)</strong> &bull; 100% Local & Private Document
+          Generated with <strong>Universal AI Exporter</strong> &bull; 100% Local & Private Document
         </div>
       </body>
       </html>
@@ -239,7 +239,7 @@ export class PDFExporter {
 
     // Create an attached offscreen container with exact standard width (794px = A4 at 96 DPI)
     const container = document.createElement('div');
-    container.id = 'promptdoc-pdf-sandbox';
+    container.id = 'uaie-pdf-sandbox';
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';

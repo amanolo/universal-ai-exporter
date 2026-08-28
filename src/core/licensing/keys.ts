@@ -40,7 +40,7 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
   }
 
   const [prefix, payloadB64, signatureB64] = parts;
-  if (!prefix.startsWith('PDOC-')) {
+  if (!prefix.startsWith('UAIE-') && !prefix.startsWith('PDOC-')) {
     return null;
   }
 
@@ -56,7 +56,7 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
 
     // Check expiration if timestamp
     if (typeof payload.expires === 'number' && Date.now() > payload.expires) {
-      console.warn('PromptDoc: License has expired.');
+      console.warn('Universal AI Exporter: License has expired.');
       return null;
     }
 
@@ -85,7 +85,7 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
     }
     return null;
   } catch (err) {
-    console.error('PromptDoc: License verification failed', err);
+    console.error('Universal AI Exporter: License verification failed', err);
     return null;
   }
 }

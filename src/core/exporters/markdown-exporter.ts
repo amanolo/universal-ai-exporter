@@ -180,7 +180,7 @@ export class MarkdownExporter {
     }
 
     // Footer
-    lines.push('\n\n*Exported via [Universal AI Exporter (PromptDoc)](https://promptdoc.io) — 100% Private & Local.*');
+    lines.push('\n\n*Exported with Universal AI Exporter — 100% Private & Local.*');
 
     return lines.join('\n');
   }

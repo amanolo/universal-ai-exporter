@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Universal AI Exporter - PromptDoc",
+  "name": "Universal AI Exporter",
   "version": "1.0.0",
   "description": "Export chats, code, reasoning traces & citations from ChatGPT, Claude, Perplexity, DeepSeek, and Gemini to PDF, Markdown & CSV.",
   "permissions": [
@@ -46,9 +46,6 @@
       "js": [
         "content/content.js"
       ],
-      "css": [
-        "content/floating-toolbar.css"
-      ],
       "run_at": "document_idle"
     }
   ],
@@ -69,7 +66,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "universal-ai-exporter@promptdoc.local",
+      "id": "universal-ai-exporter@local",
       "strict_min_version": "109.0"
     }
   }

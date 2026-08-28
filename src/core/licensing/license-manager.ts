@@ -6,7 +6,8 @@
 import { LicenseStatus } from '../types';
 import { verifyLicenseKey } from './keys';
 
-const STORAGE_KEY = 'promptdoc_license_state';
+const STORAGE_KEY = 'uaie_license_state';
+const LEGACY_STORAGE_KEY = 'promptdoc_license_state';
 
 export class LicenseManager {
   private static cachedStatus: LicenseStatus | null = null;
@@ -23,14 +24,14 @@ export class LicenseManager {
 
     try {
       if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-        const result = await chrome.storage.local.get(STORAGE_KEY);
-        stored = result[STORAGE_KEY] || null;
+        const result = await chrome.storage.local.get([STORAGE_KEY, LEGACY_STORAGE_KEY]);
+        stored = result[STORAGE_KEY] || result[LEGACY_STORAGE_KEY] || null;
       } else if (typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
         if (raw) stored = JSON.parse(raw);
       }
     } catch (e) {
-      console.warn('PromptDoc: Error reading license state from storage', e);
+      console.warn('Universal AI Exporter: Error reading license state from storage', e);
     }
 
     if (stored && stored.licenseKey) {
@@ -115,16 +116,17 @@ export class LicenseManager {
   public static async deactivate(): Promise<void> {
     try {
       if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-        await chrome.storage.local.remove(STORAGE_KEY);
+        await chrome.storage.local.remove([STORAGE_KEY, LEGACY_STORAGE_KEY]);
       } else if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
       }
       this.cachedStatus = {
         isPro: false,
         tier: 'free'
       };
     } catch (e) {
-      console.error('PromptDoc: Failed to clear license state', e);
+      console.error('Universal AI Exporter: Failed to clear license state', e);
     }
   }
 

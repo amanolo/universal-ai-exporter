@@ -1,4 +1,4 @@
-# Universal AI Exporter (PromptDoc) - Store Listing Kit
+# Universal AI Exporter - Store Listing Kit
 
 Official store listing metadata, optimized search keywords, copy variations, and reviewer verification notes for **Microsoft Edge Add-ons**, **Mozilla Firefox AMO**, **Google Chrome Web Store**, and **Brave**.
 
@@ -9,19 +9,16 @@ Official store listing metadata, optimized search keywords, copy variations, and
 | Field | Content |
 | :--- | :--- |
 | **Extension Title** | Universal AI Exporter — ChatGPT, Claude, DeepSeek to PDF & Markdown |
-| **Codename / Brand** | PromptDoc |
 | **Version** | `1.0.0` |
 | **Category** | Productivity / Developer Tools |
 | **Short Description** (132 chars max) | Export ChatGPT, Claude, Perplexity, DeepSeek & Gemini chats to Obsidian Markdown, styled PDFs & CSVs. 100% private & offline. |
-| **Support Email** | support@promptdoc.io |
-| **Privacy Policy URL** | https://promptdoc.io/privacy |
 
 ---
 
 ## 2. Store Listing Copy (Detailed Description)
 
 ```markdown
-# Universal AI Exporter (PromptDoc)
+# Universal AI Exporter
 ### Export ChatGPT, Claude, Perplexity, DeepSeek & Gemini to PDF, Obsidian Markdown & CSV Tables
 
 Universal AI Exporter is the fastest, cleanest, 100% client-side browser extension designed for researchers, developers, students, and power users who need to archive and document their AI conversations.
@@ -77,7 +74,7 @@ Unlike other extensions that upload your chat transcripts to third-party cloud s
 ---
 
 ### ⚡ FAST & INTUITIVE WORKFLOW
-• Injected Floating Action Bar: Minimalist glassmorphic pill appears unobtrusively in the bottom corner for 1-click exports.
+• Fast 1-Click Exports: Click the extension icon in your browser toolbar to instantly export to PDF, Markdown, or CSV.
 • Keyboard Shortcut: Press Alt+Shift+E to instantly export the active chat to Markdown.
 ```
 
@@ -86,7 +83,7 @@ Unlike other extensions that upload your chat transcripts to third-party cloud s
 ## 3. In-Store Keyword Search Tags
 
 ### Microsoft Edge Add-ons
-`chatgpt export`, `claude to pdf`, `deepseek markdown`, `perplexity citation`, `chatgpt to obsidian`, `ai exporter`, `export chatgpt`, `gemini pdf`, `save chatgpt conversation`, `promptdoc`
+`chatgpt export`, `claude to pdf`, `deepseek markdown`, `perplexity citation`, `chatgpt to obsidian`, `ai exporter`, `export chatgpt`, `gemini pdf`, `save chatgpt conversation`
 
 ### Mozilla Firefox AMO
 `chatgpt`, `claude`, `deepseek`, `markdown`, `pdf export`, `obsidian`, `privacy`, `academic citations`, `latex math`, `table extractor`
@@ -104,7 +101,7 @@ Unlike other extensions that upload your chat transcripts to third-party cloud s
 > 
 > **How to test:**
 > 1. Open any active chat on `https://chatgpt.com`, `https://claude.ai`, `https://www.perplexity.ai`, `https://chat.deepseek.com`, or `https://gemini.google.com`.
-> 2. Look at the bottom-right corner for the floating "PromptDoc" action pill or click the extension toolbar icon.
+> 2. Click the extension toolbar icon.
 > 3. Click "PDF", "MD", or "CSV" to generate a formatted document.
 > 
 > **Privacy Architecture:**

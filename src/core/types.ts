@@ -1,5 +1,5 @@
 /**
- * Universal AI Exporter (PromptDoc) - Core Types
+ * Universal AI Exporter - Core Types
  */
 
 export type AIPlatform = 'chatgpt' | 'claude' | 'perplexity' | 'deepseek' | 'gemini' | 'unknown';

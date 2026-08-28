@@ -86,70 +86,82 @@ function crc32(buf) {
  * A rounded document card with a vibrant blue-cyan gradient,
  * document lines, and an export sparkle mark.
  */
-function promptDocPixelShader(x, y, w, h) {
-  const nx = x / w;
-  const ny = y / h;
+function uaiePixelShader(x, y, w, h) {
+  const normX = x / w;
+  const normY = y / h;
 
-  // Rounded rectangle card bounds
-  const cornerRadius = 0.18;
-  const padding = 0.08;
-  const cardLeft = padding;
-  const cardRight = 1 - padding;
-  const cardTop = padding;
-  const cardBottom = 1 - padding;
+  // Background gradient: Deep Indigo (#0f172a to #1e1b4b)
+  let r = Math.floor(15 + normY * 15);
+  let g = Math.floor(23 + normY * 10);
+  let b = Math.floor(42 + normY * 33);
+  let a = 255;
 
-  // Check if inside rounded rectangle
-  let inCard = false;
-  if (nx >= cardLeft && nx <= cardRight && ny >= cardTop && ny <= cardBottom) {
-    const dx = Math.max(cardLeft + cornerRadius - nx, 0, nx - (cardRight - cornerRadius));
-    const dy = Math.max(cardTop + cornerRadius - ny, 0, ny - (cardBottom - cornerRadius));
-    if (dx * dx + dy * dy <= cornerRadius * cornerRadius) {
-      inCard = true;
+  // Document Page Graphic Dimensions
+  const docLeft = Math.floor(w * 0.22);
+  const docRight = Math.floor(w * 0.78);
+  const docTop = Math.floor(h * 0.16);
+  const docBottom = Math.floor(h * 0.84);
+  const cornerFold = Math.floor(w * 0.20);
+
+  // Inside doc boundaries
+  if (x >= docLeft && x <= docRight && y >= docTop && y <= docBottom) {
+    // Check if in folded top-right corner
+    const inFoldCutout = (x > (docRight - cornerFold)) && (y < (docTop + cornerFold)) && ((x - (docRight - cornerFold)) + (docTop + cornerFold - y) > cornerFold);
+
+    if (!inFoldCutout) {
+      // Document base color: Crisp Pure White (#FFFFFF)
+      r = 255;
+      g = 255;
+      b = 255;
+
+      // Cyan Accent Header Line
+      if (y >= docTop + h * 0.18 && y <= docTop + h * 0.24 && x >= docLeft + w * 0.10 && x <= docRight - w * 0.10) {
+        r = 14; g = 165; b = 233; // Vibrant Sky Blue (#0ea5e9)
+      }
+
+      // Middle Content Lines
+      if (y >= docTop + h * 0.32 && y <= docTop + h * 0.36 && x >= docLeft + w * 0.10 && x <= docRight - w * 0.10) {
+        r = 71; g = 85; b = 105; // Slate-600
+      }
+      if (y >= docTop + h * 0.44 && y <= docTop + h * 0.48 && x >= docLeft + w * 0.10 && x <= docRight - w * 0.10) {
+        r = 148; g = 163; b = 184; // Slate-400
+      }
+      if (y >= docTop + h * 0.56 && y <= docTop + h * 0.60 && x >= docLeft + w * 0.10 && x <= docLeft + w * 0.36) {
+        r = 16; g = 185; b = 129; // Emerald Accent (#10b981)
+      }
+    } else {
+      // Fold flap styling
+      const inFlap = (x >= docRight - cornerFold) && (y <= docTop + cornerFold) && ((x - (docRight - cornerFold)) <= (y - docTop));
+      if (inFlap) {
+        r = 203; g = 213; b = 225; // Light Gray Slate (#cbd5e1)
+      }
     }
   }
 
-  if (!inCard) {
-    return [0, 0, 0, 0]; // Transparent background
+  // Rounded outer borders for app icon
+  const rad = w * 0.22;
+  const isCorner =
+    (x < rad && y < rad && Math.hypot(x - rad, y - rad) > rad) ||
+    (x > w - rad && y < rad && Math.hypot(x - (w - rad), y - rad) > rad) ||
+    (x < rad && y > h - rad && Math.hypot(x - rad, y - (h - rad)) > rad) ||
+    (x > w - rad && y > h - rad && Math.hypot(x - (w - rad), y - (h - rad)) > rad);
+
+  if (isCorner) {
+    return [0, 0, 0, 0];
   }
 
-  // Gradient background: deep ocean blue (#0369a1) to vibrant sky blue (#38bdf8)
-  const gradT = (nx + ny) / 2;
-  const r = Math.round(2 * (1 - gradT) + 56 * gradT);
-  const g = Math.round(132 * (1 - gradT) + 189 * gradT);
-  const b = Math.round(199 * (1 - gradT) + 248 * gradT);
-
-  // Document lines in white
-  // Line 1: top bar (y: 0.32, x: 0.25 to 0.75)
-  // Line 2: mid bar (y: 0.48, x: 0.25 to 0.75)
-  // Line 3: bot bar (y: 0.64, x: 0.25 to 0.55)
-  const isLine1 = ny >= 0.28 && ny <= 0.36 && nx >= 0.24 && nx <= 0.76;
-  const isLine2 = ny >= 0.44 && ny <= 0.52 && nx >= 0.24 && nx <= 0.76;
-  const isLine3 = ny >= 0.60 && ny <= 0.68 && nx >= 0.24 && nx <= 0.56;
-
-  // Arrow / Export Badge in bottom right corner (y: 0.58-0.82, x: 0.58-0.82)
-  const isArrowCircle = Math.hypot(nx - 0.72, ny - 0.72) < 0.16;
-
-  if (isArrowCircle) {
-    // Glowing emerald / white action accent
-    return [16, 185, 129, 255];
-  }
-
-  if (isLine1 || isLine2 || isLine3) {
-    return [255, 255, 255, 240];
-  }
-
-  return [r, g, b, 255];
+  return [r, g, b, a];
 }
 
-export function generateAllIcons(outDir) {
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
+export function generateAllIcons(outputDir) {
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
 
   const sizes = [16, 32, 48, 128];
   sizes.forEach(size => {
-    const pngBuffer = createPngBuffer(size, size, promptDocPixelShader);
-    const filePath = path.join(outDir, `icon-${size}.png`);
+    const pngBuffer = createPngBuffer(size, size, uaiePixelShader);
+    const filePath = path.join(outputDir, `icon-${size}.png`);
     fs.writeFileSync(filePath, pngBuffer);
     console.log(`✅ Generated icon asset: ${filePath} (${size}x${size}px)`);
   });

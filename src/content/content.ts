@@ -1,22 +1,13 @@
 /**
  * Universal AI Exporter - Content Script Entry Point
- * Listens for popup commands and initializes the floating action bar.
+ * Listens for popup commands to extract and format conversation data.
  */
 
 import { AdapterRegistry } from '../core/adapters/adapter-registry';
-import { FloatingToolbar } from './floating-toolbar';
 import { MarkdownExporter } from '../core/exporters/markdown-exporter';
 import { PDFExporter } from '../core/exporters/pdf-exporter';
 import { CSVExporter } from '../core/exporters/csv-exporter';
 import { ExportOptions } from '../core/types';
-
-// Initialize Injected Floating Toolbar
-const toolbar = new FloatingToolbar();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => toolbar.init());
-} else {
-  toolbar.init();
-}
 
 // Runtime message listener for popup commands
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
@@ -61,7 +52,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         sendResponse({ success: false, error: 'Unknown export format.' });
       }
     } catch (err: any) {
-      console.error('PromptDoc Content Script Error:', err);
+      console.error('Universal AI Exporter Content Script Error:', err);
       sendResponse({ success: false, error: err.message || 'Extraction failed' });
     }
   })();

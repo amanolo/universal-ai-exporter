@@ -78,7 +78,7 @@ async function initPopup(): Promise<void> {
       }
     });
   } catch (err) {
-    console.error('PromptDoc: Popup initialization error', err);
+    console.error('Universal AI Exporter: Popup initialization error', err);
     updatePlatformStatus('Ready', 'Click export button to capture conversation.', true);
   }
 }

@@ -53,8 +53,7 @@ async function buildTarget(targetName) {
   // 2. Copy static files & styles
   const copyTasks = [
     { src: 'src/popup/popup.html', dest: 'popup/popup.html' },
-    { src: 'src/popup/popup.css', dest: 'popup/popup.css' },
-    { src: 'src/content/floating-toolbar.css', dest: 'content/floating-toolbar.css' }
+    { src: 'src/popup/popup.css', dest: 'popup/popup.css' }
   ];
 
   copyTasks.forEach(task => {

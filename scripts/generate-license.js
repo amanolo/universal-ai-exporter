@@ -67,7 +67,7 @@ export function signLicense(email, tier = 'pro', expires = 'lifetime') {
   const signatureBase64 = signature.toString('base64url');
 
   // Format: PDOC-PRO.<payloadBase64>.<signatureBase64>
-  const licenseKey = `PDOC-${tier.toUpperCase()}.${payloadBase64}.${signatureBase64}`;
+  const licenseKey = `UAIE-${tier.toUpperCase()}.${payloadBase64}.${signatureBase64}`;
   return { licenseKey, payload, keys };
 }
 
@@ -81,7 +81,7 @@ if (process.argv[1] === __filename) {
   const { licenseKey, payload, keys } = signLicense(email, tier, expires);
 
   console.log('\n======================================================');
-  console.log('🔑 UNIVERSAL AI EXPORTER (PROMPTDOC) - LICENSE KEYGEN');
+  console.log('🔑 UNIVERSAL AI EXPORTER - LICENSE KEYGEN');
   console.log('======================================================');
   console.log(`Email:     ${payload.email}`);
   console.log(`Tier:      ${payload.tier}`);

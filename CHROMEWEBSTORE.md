@@ -1,19 +1,17 @@
 # Chrome Web Store & Store Listing Document
 
-> Single source of truth for all store metadata, permissions justifications, privacy disclosures, and submission assets for **Universal AI Exporter (PromptDoc)**.
+> Single source of truth for all store metadata, permissions justifications, privacy disclosures, and submission assets for **Universal AI Exporter**.
 
 ---
 
 ## Extension Metadata
 
-- **Name**: Universal AI Exporter — PromptDoc
+- **Name**: Universal AI Exporter
 - **Version**: 1.0.0
 - **Summary / Short Description**: Export ChatGPT, Claude, Perplexity, DeepSeek & Gemini chats to Obsidian Markdown, styled PDFs & CSVs. 100% private & offline.
 - **Primary Category**: Productivity
 - **Secondary Category**: Developer Tools
 - **Default Language**: English
-- **Privacy Policy URL**: https://promptdoc.io/privacy
-- **Support URL / Email**: support@promptdoc.io
 
 ---
 
@@ -22,7 +20,7 @@
 | Permission / Host | Justification for Review Team |
 | :--- | :--- |
 | `storage` | Used exclusively to persist local export preferences (such as selected PDF theme and frontmatter toggles) and offline license key state in `chrome.storage.local`. No data is ever transmitted. |
-| `activeTab` | Used to initiate client-side DOM parsing on the currently active chat tab when the user clicks the extension action button or floating toolbar. |
+| `activeTab` | Used to initiate client-side DOM parsing on the currently active chat tab when the user clicks the extension action button. |
 | `tabs` | Used to detect the active tab's URL to automatically activate the matching platform adapter (ChatGPT, Claude, Perplexity, DeepSeek, or Gemini). |
 | `https://chatgpt.com/*`<br>`https://chat.openai.com/*` | Required to inject the content script that reads chat turns, formatted code blocks, and KaTeX math formulas on ChatGPT. |
 | `https://claude.ai/*` | Required to inject the content script that extracts Claude conversations and isolates Claude Artifacts (code, HTML, SVG). |

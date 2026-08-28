@@ -1,4 +1,4 @@
-# Universal AI Exporter (`PromptDoc`)
+# Universal AI Exporter
 
 > A lightweight, **100% private, client-side browser extension** (Manifest V3) that exports conversations, code blocks, reasoning traces, and citations from **ChatGPT, Claude, Perplexity, DeepSeek, and Google Gemini** into beautifully styled PDFs, Obsidian-ready Markdown, and CSV tables.
 
@@ -38,9 +38,7 @@ Universal AI Exporter/
 │   ├── background/
 │   │   └── service-worker.ts    # Background coordinator
 │   ├── content/
-│   │   ├── content.ts           # Content script entry & message router
-│   │   ├── floating-toolbar.ts  # Injected glassmorphic floating action bar
-│   │   └── floating-toolbar.css # Modern styling with zero page collisions
+│   │   └── content.ts           # Content script entry & message router
 │   ├── popup/
 │   │   ├── popup.html           # Minimalist extension popup
 │   │   ├── popup.ts             # Popup controller & platform detector

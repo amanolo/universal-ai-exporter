@@ -6,11 +6,11 @@
 // Installation & Update Lifecycle
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    console.log('Universal AI Exporter (PromptDoc) installed successfully.');
+    console.log('Universal AI Exporter installed successfully.');
     // Set default initial state
     await chrome.storage.local.set({
-      promptdoc_installed_at: new Date().toISOString(),
-      promptdoc_version: '1.0.0'
+      uaie_installed_at: new Date().toISOString(),
+      uaie_version: '1.0.0'
     });
   }
 });
