@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Asymmetric Cryptography Architecture - DeepSeek</title>
+</head>
+<body>
+  <div class="chat-container">
+    <!-- Turn 1: User -->
+    <div class="chat-message session-message user">
+      <p>Compare Ed25519 signature algorithm against RSA-4096 in terms of key size, speed, and side-channel resistance.</p>
+    </div>
+
+    <!-- Turn 2: DeepSeek R1 Response -->
+    <div class="chat-message session-message ds-message">
+      <!-- DeepSeek Thinking block -->
+      <div class="ds-think">
+        Thinking Process:
+        1. Evaluate Curve25519 Twisted Edwards curve mathematics.
+        2. Ed25519 produces 64-byte signatures with 32-byte public keys.
+        3. RSA-4096 requires 512-byte signatures with high CPU verification overhead.
+        4. Detail side-channel resistance (constant-time operations in Ed25519).
+      </div>
+
+      <div class="ds-markdown">
+        <p><strong>Ed25519</strong> offers superior cryptographic efficiency and security properties compared to legacy RSA-4096.</p>
+
+        <h3>Cryptographic Benchmark Matrix</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Public Key Size</th>
+              <th>Signature Size</th>
+              <th>Verify Time (ms)</th>
+              <th>Constant Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ed25519 (Curve25519)</td>
+              <td>32 bytes</td>
+              <td>64 bytes</td>
+              <td>&lt; 0.6 ms</td>
+              <td>Yes (Default)</td>
+            </tr>
+            <tr>
+              <td>RSA-4096</td>
+              <td>512 bytes</td>
+              <td>512 bytes</td>
+              <td>~ 2.8 ms</td>
+              <td>Complex padding required</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Web Crypto Ed25519 Verification</h3>
+        <pre><code class="language-typescript">export async function verifySignature(publicKey: CryptoKey, sig: Uint8Array, data: Uint8Array): Promise<boolean> {
+  return await crypto.subtle.verify({ name: 'Ed25519' }, publicKey, sig, data);
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

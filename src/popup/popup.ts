@@ -100,7 +100,7 @@ function onConversationLoaded(conv: ConversationData): void {
   const tableCount = conv.totalTablesCount;
 
   let details = `${msgCount} Messages`;
-  if (tableCount > 0) details += ` • ${tableCount} Tables`;
+  if (tableCount > 0) details += ` • ${tableCount} Table${tableCount > 1 ? 's' : ''}`;
 
   const platformDisplayNames: Record<string, string> = {
     gemini: 'GOOGLE GEMINI',

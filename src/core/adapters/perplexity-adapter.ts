@@ -27,7 +27,9 @@ export class PerplexityAdapter implements AIPlatformAdapter {
 
     // Extract all global source citation cards if present
     const globalCitations: WebCitation[] = [];
-    const sourceCardElements = document.querySelectorAll('a[href^="http"]:not([href*="perplexity.ai"]), div[class*="source"], [data-testid^="source-"]');
+    const sourceCardElements = document.querySelectorAll(
+      '[data-testid^="source-"], div[class*="source-card"], div[class*="SourceCard"], a[href^="http"]:not([href*="perplexity.ai"])'
+    );
 
     let citationIndex = 1;
     const seenUrls = new Set<string>();
@@ -47,8 +49,10 @@ export class PerplexityAdapter implements AIPlatformAdapter {
         hostname = url;
       }
 
-      let cardTitle = card.querySelector('div[class*="title"], span[class*="title"], h4, div.font-medium')?.textContent?.trim() || '';
-      if (!cardTitle) cardTitle = linkEl.textContent?.trim() || hostname;
+      let cardTitle = linkEl.querySelector('div[class*="title"], span[class*="title"], h4')?.textContent?.trim() ||
+                      card.querySelector('div[class*="title"], span[class*="title"], h4')?.textContent?.trim() ||
+                      linkEl.textContent?.trim() ||
+                      hostname;
 
       let snippet = card.querySelector('div[class*="snippet"], p, div.text-xs')?.textContent?.trim();
       let siteName = hostname.replace(/^www\./, '');

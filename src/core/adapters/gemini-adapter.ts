@@ -117,15 +117,15 @@ export class GeminiAdapter implements AIPlatformAdapter {
       if (!rawText || rawText.length > 40) continue;
       if (/send|upload|mic|voice|attach|search|menu|upgrade|pricing|star|trial/i.test(rawText)) continue;
 
-      // Match Flash Extended, Flash Thinking, 3.7 Flash, 2.0 Flash, Flash, Pro, Advanced, Ultra
-      const match = rawText.match(/((?:Flash\s+(?:Extended|Thinking|Pro)|(?:3\.[0-9]+|2\.[0-9]+|1\.[0-9]+)\s*Flash|Flash|Pro|Advanced|Ultra))/i);
+      // Match 3.5 Flash-Lite, 3.7 Flash, 3.1 Pro, Flash Extended, Extended thinking, 2.0 Flash Thinking, etc.
+      const match = rawText.match(/((?:(?:[0-9]+\.[0-9]+|[0-9]+)\s+)?(?:Flash(?:\s+(?:Extended|Thinking|Pro)|-Lite)?|Pro|Advanced|Ultra)(?:\s+(?:Extended|Thinking))?)/i);
       if (match && match[1]) {
         candidates.push(match[1].trim());
       }
     }
 
     if (candidates.length > 0) {
-      // Prioritize the longest/most specific model descriptor (e.g. "Flash Extended" over just "Flash")
+      // Prioritize the longest/most specific model descriptor (e.g. "3.7 Flash Extended" over "Flash")
       candidates.sort((a, b) => b.length - a.length);
       const best = candidates[0];
       model = best.toLowerCase().startsWith('gemini') ? best : `Gemini ${best}`;

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Distributed Consensus Protocols - Gemini</title>
+</head>
+<body>
+  <header>
+    <div class="composer">
+      <button class="model-picker">Gemini 2.0 Flash Thinking</button>
+    </div>
+    <!-- Floating menus that MUST be ignored -->
+    <bard-mode-menu>
+      <button>Switch Mode</button>
+    </bard-mode-menu>
+    <mat-menu role="menu">
+      <div>Settings</div>
+    </mat-menu>
+  </header>
+
+  <main>
+    <!-- Turn 1: User Query -->
+    <user-query>
+      <div class="user-query-container">
+        <p>Explain how leader election works in the Raft consensus algorithm.</p>
+      </div>
+    </user-query>
+
+    <!-- Turn 2: Gemini Response -->
+    <model-response>
+      <!-- Thought box for Gemini Flash Thinking -->
+      <thought-box data-test-id="thought-box">
+        Thinking Process:
+        1. Raft decomposes consensus into Leader Election, Log Replication, and Safety.
+        2. Randomized election timeouts (150ms-300ms) prevent split votes.
+        3. Candidates request RequestVote RPCs.
+        4. Detail majority quorum mechanism.
+      </thought-box>
+
+      <message-content>
+        <p>In <strong>Raft</strong>, leader election uses randomized election timers to ensure a single leader is elected without split votes.</p>
+
+        <h3>Raft Node States</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Role</th>
+              <th>Transition Trigger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Follower</td>
+              <td>Passively responds to RPCs</td>
+              <td>Election timeout expires</td>
+            </tr>
+            <tr>
+              <td>Candidate</td>
+              <td>Requests votes from peers</td>
+              <td>Receives majority quorum</td>
+            </tr>
+            <tr>
+              <td>Leader</td>
+              <td>Handles client requests & heartbeats</td>
+              <td>Discovers higher term</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button class="copy-button">Copy Code</button>
+        <pre><code class="language-go">type NodeState int
+const (
+    Follower NodeState = iota
+    Candidate
+    Leader
+)</code></pre>
+      </message-content>
+    </model-response>
+  </main>
+</body>
+</html>

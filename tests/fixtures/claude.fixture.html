@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Full Stack Architecture & Visualizer | Claude</title>
+</head>
+<body>
+  <div id="root">
+    <main>
+      <!-- Turn 1: User Message -->
+      <div data-testid="user-message" class="font-user-message">
+        <p>Could you design a system architecture diagram in SVG and provide a React component for the user profile card?</p>
+      </div>
+
+      <!-- Turn 2: Claude Message with Artifacts and Thinking -->
+      <div class="font-claude-message ChatMessage_container">
+        <!-- Claude 3.7 Sonnet Extended Thinking Block -->
+        <div class="font-claude-thought-container text-sm text-gray-500">
+          Thinking Process:
+          1. Need to generate clean, self-contained SVG vectors for the distributed system architecture.
+          2. Structure the React component using TypeScript and Tailwind CSS.
+          3. Ensure modularity and accessible color contrast.
+        </div>
+
+        <div class="grid">
+          <p>Here is the architectural overview along with the production-ready React component.</p>
+
+          <!-- Claude Artifact 1: SVG Diagram -->
+          <div data-testid="artifact-button" class="artifact-card" data-artifact-id="art-svg-01">
+            <div class="font-medium">System Architecture Diagram (SVG)</div>
+            <pre><code class="language-xml">&lt;svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg"&gt;
+  &lt;rect width="400" height="200" rx="10" fill="#1e293b"/&gt;
+  &lt;circle cx="100" cy="100" r="40" fill="#3b82f6"/&gt;
+  &lt;text x="100" y="105" text-anchor="middle" fill="#ffffff" font-size="14"&gt;Client&lt;/text&gt;
+  &lt;line x1="140" y1="100" x2="260" y2="100" stroke="#94a3b8" stroke-width="2"/&gt;
+  &lt;circle cx="300" cy="100" r="40" fill="#10b981"/&gt;
+  &lt;text x="300" y="105" text-anchor="middle" fill="#ffffff" font-size="14"&gt;Server&lt;/text&gt;
+&lt;/svg&gt;</code></pre>
+          </div>
+
+          <!-- Claude Artifact 2: React Component -->
+          <div data-testid="artifact-button" class="artifact-card" data-artifact-id="art-react-02">
+            <div class="font-medium">UserProfileCard.tsx (React)</div>
+            <pre><code class="language-tsx">import React from 'react';
+
+interface UserProfileProps {
+  name: string;
+  role: string;
+  avatarUrl: string;
+}
+
+export const UserProfileCard: React.FC&lt;UserProfileProps&gt; = ({ name, role, avatarUrl }) => {
+  return (
+    &lt;div className="p-4 bg-white rounded-xl shadow-md flex items-center space-x-4"&gt;
+      &lt;img className="h-12 w-12 rounded-full" src={avatarUrl} alt={name} /&gt;
+      &lt;div&gt;
+        &lt;div className="text-xl font-medium text-black"&gt;{name}&lt;/div&gt;
+        &lt;p className="text-gray-500"&gt;{role}&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+};</code></pre>
+          </div>
+
+          <p>Both artifacts are ready for deployment into your component library.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

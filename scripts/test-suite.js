@@ -2,9 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import TurndownService from 'turndown';
+import esbuild from 'esbuild';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { signLicense } from './generate-license.js';
 
-// --- Pure implementations matching src/core/utils & exporters for zero-build test isolation ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
+
+// --- Base Unit Tests (Isolation) ---
 
 function sanitizeFilename(name, extension) {
   const clean = name
@@ -74,9 +82,25 @@ function exportTables(conversation, tableIndex) {
   };
 }
 
-// --- Test Suite ---
+function healCodeFences(text) {
+  const matches = text.match(/(?:^|\n)\s*(?:>\s*)*```/g);
+  const count = matches ? matches.length : 0;
+  if (count % 2 !== 0) {
+    return text.trimEnd() + '\n```\n';
+  }
+  return text;
+}
 
-test('1. Filename Sanitization & Character Stripping', () => {
+function stripStreamingCursors(text) {
+  return text.replace(/[\u25ae\u2588\u25cf\u258b\u258c\u258d\u258e\u258f\u25a0\u25aa\u25ab\u200b]/g, '').trim();
+}
+
+function computeAdaptiveCanvasScale(docHeight) {
+  const safeMaxCanvasHeight = 30000;
+  return Math.min(2, Math.max(0.5, safeMaxCanvasHeight / docHeight));
+}
+
+test('Base 1. Filename Sanitization & Character Stripping', () => {
   const sanitized1 = sanitizeFilename('What is Quantum Computing? / Part 1: Intro', 'md');
   assert.match(sanitized1, /^What-is-Quantum-Computing-Part-1-Intro-\d{4}-\d{2}-\d{2}\.md$/);
 
@@ -87,7 +111,7 @@ test('1. Filename Sanitization & Character Stripping', () => {
   assert.match(sanitized3, /^ai-export-\d{4}-\d{2}-\d{2}\.csv$/);
 });
 
-test('2. CSV RFC 4180 Escaping & Excel UTF-8 BOM', () => {
+test('Base 2. CSV RFC 4180 Escaping & Excel UTF-8 BOM', () => {
   const testTable = [
     ['Header 1', 'Header 2, with comma', 'Header 3 "Quotes"'],
     ['Row 1', 'Line\nBreak', 'Simple Value']
@@ -115,21 +139,18 @@ test('2. CSV RFC 4180 Escaping & Excel UTF-8 BOM', () => {
   assert.ok(result.csvContent.includes('--- TABLE 1 (ChatGPT) ---'));
 });
 
-test('3. Markdown Turndown & Frontmatter Processing', () => {
+test('Base 3. Markdown Turndown & Math Preservation', () => {
   const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
-
-  // Test math conversion preservation
   const htmlWithMath = '<p>The formula is $E = mc^2$ and $$\\int_0^1 x dx$$</p>';
   const markdown = turndown.turndown(htmlWithMath);
   assert.ok(markdown.includes('$E = mc^2$'));
 
-  // Test code blocks
   const htmlWithCode = '<pre><code class="language-python">def hello():\n    print("world")</code></pre>';
   const mdCode = turndown.turndown(htmlWithCode);
   assert.ok(mdCode.includes('def hello():'));
 });
 
-test('4. Ed25519 Web Crypto License Verification', async () => {
+test('Base 4. Ed25519 Web Crypto License Verification', async () => {
   const email = 'researcher@university.edu';
   const { licenseKey, payload, keys } = signLicense(email, 'pro', 'lifetime');
 
@@ -163,50 +184,40 @@ test('4. Ed25519 Web Crypto License Verification', async () => {
   assert.equal(isValid, true, 'Cryptographic signature must be valid');
 });
 
-function healCodeFences(text) {
-  const matches = text.match(/(?:^|\n)\s*(?:>\s*)*```/g);
-  const count = matches ? matches.length : 0;
-  if (count % 2 !== 0) {
-    return text.trimEnd() + '\n```\n';
-  }
-  return text;
-}
-
-function stripStreamingCursors(text) {
-  return text.replace(/[\u25ae\u2588\u25cf\u258b\u258c\u258d\u258e\u258f\u25a0\u25aa\u25ab\u200b]/g, '').trim();
-}
-
-function computeAdaptiveCanvasScale(docHeight) {
-  const safeMaxCanvasHeight = 30000;
-  return Math.min(2, Math.max(0.5, safeMaxCanvasHeight / docHeight));
-}
-
-test('5. Markdown Unclosed Code Fence Auto-Healing & Cursor Stripping', () => {
-  // Test unclosed code fence
+test('Base 5. Markdown Code Fence Healing & Cursor Stripping', () => {
   const unclosed = '### Response\n\nHere is some code:\n```typescript\nconst a = 1;';
   const healed = healCodeFences(unclosed);
-  assert.ok(healed.endsWith('```\n'), 'Should automatically append closing code fence');
-  assert.equal(healCodeFences(healed), healed, 'Should leave balanced code fences unchanged');
+  assert.ok(healed.endsWith('```\n'));
+  assert.equal(healCodeFences(healed), healed);
 
-  // Test streaming cursor characters
   const rawTextWithCursors = 'Generating tokens...\u25ae\u2588\u200b';
   const cleaned = stripStreamingCursors(rawTextWithCursors);
   assert.equal(cleaned, 'Generating tokens...');
 });
 
-test('6. Adaptive PDF Canvas Scale for Long Conversations', () => {
-  // Short conversation (3,000px): standard 2x DPI scale
+test('Base 6. Adaptive PDF Canvas Scale Calculation', () => {
   assert.equal(computeAdaptiveCanvasScale(3000), 2);
-
-  // 50-turn conversation (15,000px): scale is 2
   assert.equal(computeAdaptiveCanvasScale(15000), 2);
-
-  // 100-turn conversation (30,000px): scale is 1
   assert.equal(computeAdaptiveCanvasScale(30000), 1);
-
-  // 200-turn conversation (60,000px): scale is 0.5 (strictly caps canvas at 30,000px)
-  const hugeScale = computeAdaptiveCanvasScale(60000);
-  assert.equal(hugeScale, 0.5);
-  assert.ok(60000 * hugeScale <= 30000, 'Canvas height must never exceed GPU hardware limits');
+  assert.equal(computeAdaptiveCanvasScale(60000), 0.5);
 });
 
+// --- Dynamic Compilation & Execution of Multi-Platform Fixture & Security Tests ---
+
+const testBundleOut = path.join(ROOT_DIR, 'dist/test-suite-bundle.mjs');
+const distDir = path.dirname(testBundleOut);
+if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
+
+await esbuild.build({
+  entryPoints: [path.join(ROOT_DIR, 'tests/all-tests.ts')],
+  bundle: true,
+  outfile: testBundleOut,
+  format: 'esm',
+  platform: 'node',
+  target: 'node20',
+  packages: 'external',
+  sourcemap: 'inline'
+});
+
+// Execute the bundled fixture, exporter, and security test suites
+await import(`file://${testBundleOut}?t=${Date.now()}`);
