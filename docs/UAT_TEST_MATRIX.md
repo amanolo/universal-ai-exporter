@@ -12,10 +12,10 @@
 | **UAT-06-A-PDF** | **ChatGPT** | Reasoning Traces (o3-mini) | Logic or math problem with o3-mini | Export to **PDF** | Thought process appears inside a tinted "Reasoning Process" callout block. | [ ] |
 | **UAT-09-A-ALL** | **ChatGPT** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports a multi-table spreadsheet with headers that opens directly in Excel. | [x] |
 | **UAT-09-A-SEL** | **ChatGPT** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports only the selected table as a single CSV file. | [x] |
-| **UAT-10-A-EXEC** | **ChatGPT** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Clean, modern light layout with subtle card borders. | [ ] |
-| **UAT-10-A-MID** | **ChatGPT** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark slate OLED background with high-contrast text. | [ ] |
-| **UAT-10-A-ACAD** | **ChatGPT** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal book-style serif typography and clean dividers. | [ ] |
-| **UAT-11-A** | **ChatGPT** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without getting sliced across page edges. | [ ] |
+| **UAT-10-A-EXEC** | **ChatGPT** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Clean, modern light layout with subtle card borders. | [x] |
+| **UAT-10-A-MID** | **ChatGPT** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark slate OLED background with high-contrast text. | [x] |
+| **UAT-10-A-ACAD** | **ChatGPT** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal book-style serif typography and clean dividers. | [x] |
+| **UAT-11-A** | **ChatGPT** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without getting sliced across page edges. | [x] |
 | | | | | | | |
 | **UAT-01-C-MD** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **Markdown** | Captures graphic/illustration without showing tool command text (`visualize show_widget`). | [ ] |
 | **UAT-01-C-PDF** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **PDF** | Visual graphic renders in the PDF card without internal tool clutter. | [ ] |
@@ -59,3 +59,7 @@
 | **UAT-06-C-PDF** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **PDF** | Reasoning process renders in a distinct tinted callout block. | [ ] |
 | **UAT-09-D-ALL** | **DeepSeek** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [ ] |
 | **UAT-09-D-SEL** | **DeepSeek** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [ ] |
+| | | | | | | |
+| **UAT-SMOKE-FIREFOX** | **Firefox** | Cross-Browser Smoke Audit | Load `dist/firefox` in `about:debugging` | Export 1 MD & 1 PDF on any platform | Add-on loads cleanly with dual MV3 compatibility; downloads & print dialogs trigger smoothly. | [ ] |
+| **UAT-SMOKE-EDGE** | **Edge** | Cross-Browser Smoke Audit | Load `dist/chromium` in `edge://extensions` | Export 1 MD & 1 PDF on any platform | Unpacked extension loads cleanly; full Chromium parity confirmed. | [ ] |
+

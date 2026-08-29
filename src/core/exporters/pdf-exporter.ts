@@ -98,9 +98,9 @@ export class PDFExporter {
             `;
           }
           return `
-            <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 6px; background: ${codeBg}; padding: 12px; break-inside: avoid;">
-              <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px;">📦 ARTIFACT: ${escapeHtml(art.title)} (${art.type})</div>
-              <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;"><code>${escapeHtml(art.content)}</code></pre>
+            <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 6px; background: ${codeBg}; padding: 12px; break-inside: auto;">
+              <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px; break-after: avoid;">📦 ARTIFACT: ${escapeHtml(art.title)} (${art.type})</div>
+              <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap; break-inside: auto;"><code>${escapeHtml(art.content)}</code></pre>
             </div>
           `;
         }).join('');
@@ -120,8 +120,8 @@ export class PDFExporter {
       }
 
       return `
-        <div class="message-turn" style="margin-bottom: 18px; background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 10px; padding: 16px 20px; break-inside: avoid;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid ${cardBorder}; padding-bottom: 8px;">
+        <div class="message-turn" style="margin-bottom: 18px; background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 10px; padding: 16px 20px; break-inside: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid ${cardBorder}; padding-bottom: 8px; break-after: avoid;">
             <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.05em; color: ${isUser ? mutedCol : accentCol};">${roleLabel}</span>
             <span style="font-size: 11px; color: ${mutedCol}; font-weight: 500;">Turn #${idx + 1}</span>
           </div>
@@ -198,13 +198,19 @@ export class PDFExporter {
             font-size: 12px;
             overflow-x: auto;
             white-space: pre-wrap;
-            break-inside: avoid;
+            break-inside: auto;
           }
           table {
             width: 100%;
             border-collapse: collapse;
             margin: 12px 0;
             font-size: 12.5px;
+            break-inside: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tr {
             break-inside: avoid;
           }
           th, td {
@@ -275,7 +281,7 @@ export class PDFExporter {
           ${messagesHtml}
         </div>
 
-        <div style="margin-top: 28px; padding-top: 12px; border-top: 1px solid ${cardBorderUser}; font-size: 10px; color: ${mutedCol}; text-align: center; break-inside: avoid;">
+        <div class="doc-footer" style="margin-top: 18px; padding-top: 10px; border-top: 1px solid ${cardBorderUser}; font-size: 10px; color: ${mutedCol}; text-align: center; break-inside: avoid; break-before: avoid;">
           Generated with <strong>Universal AI Exporter</strong> &bull; 100% Local & Private Document
         </div>
       </body>

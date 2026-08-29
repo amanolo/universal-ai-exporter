@@ -157,32 +157,66 @@ import { execSync } from 'node:child_process';
 function getLiveHtml() {
   // Tier 1: Try AppleScript from active Google Chrome tab (with high-res base64 image inlining)
   try {
-    const jsScript = `
+    // Phase 1: Scroll chat containers to top to ensure React virtual list mounts all turns
+    const scrollJs = `
+      (() => {
+        try {
+          const scrollContainers = Array.from(document.querySelectorAll("main, [class*='overflow'], [class*='scroll'], [id*='chat']"));
+          scrollContainers.forEach(c => { try { c.scrollTop = 0; } catch(e) {} });
+          window.scrollTo(0, 0);
+        } catch(e) {}
+        return "ok";
+      })()
+    `;
+    const scrollAppleScript = `
+tell application "Google Chrome"
+  set jsCode to ${JSON.stringify(scrollJs)}
+  tell front window's active tab
+    return execute javascript jsCode
+  end tell
+end tell
+`;
+    execSync('osascript', { input: scrollAppleScript, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+
+    // Wait 150ms synchronously for React virtual DOM to mount top nodes
+    execSync('sleep 0.15');
+
+    // Phase 2: Capture the full mounted DOM and inline high-res images
+    const js = `
       (() => {
         const clone = document.documentElement.cloneNode(true);
-        const realImgs = Array.from(document.querySelectorAll('img'));
-        const cloneImgs = Array.from(clone.querySelectorAll('img'));
+        const realImgs = Array.from(document.querySelectorAll("img"));
+        const cloneImgs = Array.from(clone.querySelectorAll("img"));
         realImgs.forEach((realImg, idx) => {
-          if (realImg.naturalWidth > 32 && realImg.naturalHeight > 32 && !realImg.src.startsWith('data:')) {
+          if (realImg.naturalWidth > 32 && realImg.naturalHeight > 32 && !realImg.src.startsWith("data:")) {
             try {
-              const canvas = document.createElement('canvas');
+              const canvas = document.createElement("canvas");
               canvas.width = realImg.naturalWidth;
               canvas.height = realImg.naturalHeight;
-              const ctx = canvas.getContext('2d');
+              const ctx = canvas.getContext("2d");
               ctx.drawImage(realImg, 0, 0);
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+              const dataUrl = canvas.toDataURL("image/jpeg", 0.90);
               if (cloneImgs[idx]) {
-                cloneImgs[idx].setAttribute('src', dataUrl);
-                cloneImgs[idx].setAttribute('data-original-src', realImg.src);
+                cloneImgs[idx].setAttribute("src", dataUrl);
+                cloneImgs[idx].setAttribute("data-original-src", realImg.src);
               }
             } catch(e) {}
           }
         });
         return clone.outerHTML;
       })()
-    `.replace(/"/g, '\\"').replace(/\n/g, ' ');
+    `;
 
-    const chromeHtml = execSync(`osascript -e "tell application \\"Google Chrome\\" to execute front window's active tab javascript \\"${jsScript}\\""`, {
+    const appleScript = `
+tell application "Google Chrome"
+  set jsCode to ${JSON.stringify(js)}
+  tell front window's active tab
+    return execute javascript jsCode
+  end tell
+end tell
+`;
+    const chromeHtml = execSync('osascript', {
+      input: appleScript,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
       maxBuffer: 100 * 1024 * 1024
@@ -298,7 +332,7 @@ export async function auditUAT(uatId, htmlSource = null) {
   if (meta.format === 'PDF') {
     binaryPdfPath = path.join(UAT_DIR, `${exportFilename}.pdf`);
     try {
-      execSync(`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --print-to-pdf="${binaryPdfPath}" "${outFilePath}"`, {
+      execSync(`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --no-pdf-header-footer --print-to-pdf="${binaryPdfPath}" "${outFilePath}"`, {
         stdio: ['ignore', 'ignore', 'ignore']
       });
       if (fs.existsSync(binaryPdfPath)) {
