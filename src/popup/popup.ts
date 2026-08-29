@@ -28,6 +28,7 @@ function showToast(message: string, durationMs = 3000): void {
  * Initializes the popup UI and reads active tab state
  */
 async function initPopup(): Promise<void> {
+  await restorePreferences();
   await updateLicenseBadge();
   setupTabs();
   setupMarkdownOptions();
@@ -171,36 +172,51 @@ async function updateLicenseBadge(): Promise<void> {
   }
 }
 
-function setupTabs(): void {
+function switchTab(tabId: string): void {
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
+
+  const matchingBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+  const matchingContent = document.getElementById(`tab-${tabId}`);
+  if (!matchingBtn || !matchingContent) return;
+
+  tabButtons.forEach(b => b.classList.remove('active'));
+  tabContents.forEach(c => c.classList.remove('active'));
+
+  matchingBtn.classList.add('active');
+  matchingContent.classList.add('active');
+}
+
+function setupTabs(): void {
+  const tabButtons = document.querySelectorAll('.tab-btn');
 
   tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const tabId = btn.getAttribute('data-tab');
-
-      tabButtons.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
-
-      btn.classList.add('active');
-      const targetContent = document.getElementById(`tab-${tabId}`);
-      if (targetContent) targetContent.classList.add('active');
+      if (!tabId) return;
+      switchTab(tabId);
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ uaie_active_tab: tabId });
+      }
     });
   });
 
-  // Radio button theme selection visual state
+  // Radio button theme selection visual state + storage persistence
   const themeCards = document.querySelectorAll('.theme-card');
   themeCards.forEach(card => {
-    const radio = card.querySelector('input[type="radio"]');
+    const radio = card.querySelector<HTMLInputElement>('input[type="radio"]');
     radio?.addEventListener('change', () => {
       themeCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ uaie_pdf_theme: radio.value });
+      }
     });
   });
 }
 
 /**
- * Sets up collapsible Markdown options drawer
+ * Sets up collapsible Markdown options drawer and persists toggles
  */
 function setupMarkdownOptions(): void {
   const toggleBtn = document.getElementById('btn-toggle-md-opts');
@@ -210,10 +226,26 @@ function setupMarkdownOptions(): void {
     const isOpen = drawer?.classList.toggle('active');
     toggleBtn.classList.toggle('open', isOpen);
   });
+
+  const mdOptionIds = [
+    { id: 'opt-md-frontmatter', key: 'uaie_opt_md_frontmatter' },
+    { id: 'opt-md-reasoning', key: 'uaie_opt_md_reasoning' },
+    { id: 'opt-md-citations', key: 'uaie_opt_md_citations' },
+    { id: 'opt-md-images', key: 'uaie_opt_md_images' }
+  ];
+
+  mdOptionIds.forEach(({ id, key }) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    el?.addEventListener('change', () => {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ [key]: el.checked });
+      }
+    });
+  });
 }
 
 /**
- * Sets up collapsible PDF options drawer
+ * Sets up collapsible PDF options drawer and persists toggles
  */
 function setupPdfOptions(): void {
   const toggleBtn = document.getElementById('btn-toggle-pdf-opts');
@@ -223,6 +255,85 @@ function setupPdfOptions(): void {
     const isOpen = drawer?.classList.toggle('active');
     toggleBtn.classList.toggle('open', isOpen);
   });
+
+  const pdfOptionIds = [
+    { id: 'opt-pdf-reasoning', key: 'uaie_opt_pdf_reasoning' },
+    { id: 'opt-pdf-citations', key: 'uaie_opt_pdf_citations' },
+    { id: 'opt-pdf-artifacts', key: 'uaie_opt_pdf_artifacts' },
+    { id: 'opt-pdf-images', key: 'uaie_opt_pdf_images' }
+  ];
+
+  pdfOptionIds.forEach(({ id, key }) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    el?.addEventListener('change', () => {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ [key]: el.checked });
+      }
+    });
+  });
+}
+
+/**
+ * Restores the user's previously selected tab, theme, and option toggles
+ */
+async function restorePreferences(): Promise<void> {
+  let targetTab = 'markdown';
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    try {
+      const data = await chrome.storage.local.get([
+        'uaie_active_tab',
+        'uaie_pdf_theme',
+        'uaie_opt_md_frontmatter',
+        'uaie_opt_md_reasoning',
+        'uaie_opt_md_citations',
+        'uaie_opt_md_images',
+        'uaie_opt_pdf_reasoning',
+        'uaie_opt_pdf_citations',
+        'uaie_opt_pdf_artifacts',
+        'uaie_opt_pdf_images'
+      ]);
+
+      // 1. Target active tab
+      if (data && data.uaie_active_tab) {
+        targetTab = data.uaie_active_tab;
+      }
+
+      // 2. Restore PDF theme
+      if (data && data.uaie_pdf_theme) {
+        const radio = document.querySelector<HTMLInputElement>(`input[name="pdf-theme"][value="${data.uaie_pdf_theme}"]`);
+        if (radio) {
+          radio.checked = true;
+          const themeCards = document.querySelectorAll('.theme-card');
+          themeCards.forEach(c => c.classList.remove('active'));
+          radio.closest('.theme-card')?.classList.add('active');
+        }
+      }
+
+      // 3. Restore checkbox options
+      const checkboxes: { key: string; id: string }[] = [
+        { key: 'uaie_opt_md_frontmatter', id: 'opt-md-frontmatter' },
+        { key: 'uaie_opt_md_reasoning', id: 'opt-md-reasoning' },
+        { key: 'uaie_opt_md_citations', id: 'opt-md-citations' },
+        { key: 'uaie_opt_md_images', id: 'opt-md-images' },
+        { key: 'uaie_opt_pdf_reasoning', id: 'opt-pdf-reasoning' },
+        { key: 'uaie_opt_pdf_citations', id: 'opt-pdf-citations' },
+        { key: 'uaie_opt_pdf_artifacts', id: 'opt-pdf-artifacts' },
+        { key: 'uaie_opt_pdf_images', id: 'opt-pdf-images' }
+      ];
+
+      checkboxes.forEach(({ key, id }) => {
+        if (data && typeof data[key] === 'boolean') {
+          const el = document.getElementById(id) as HTMLInputElement | null;
+          if (el) el.checked = data[key];
+        }
+      });
+    } catch (e) {
+      console.error('Error restoring preferences:', e);
+    }
+  }
+
+  // Activate selected tab without any layout shift
+  switchTab(targetTab);
 }
 
 /**
@@ -451,22 +562,29 @@ function updateScopeUI(): void {
   const btnPdf = document.querySelector('#btn-export-pdf span');
   if (btnPdf) {
     btnPdf.textContent = currentScopeMode === 'all'
-      ? 'Export Styled PDF'
-      : `Export PDF (${scopedCount} turn${scopedCount === 1 ? '' : 's'})`;
+      ? '🖨️ Print / Save to PDF'
+      : `🖨️ Print PDF (${scopedCount} turn${scopedCount === 1 ? '' : 's'})`;
   }
 
   const btnMd = document.querySelector('#btn-export-md span');
   if (btnMd) {
     btnMd.textContent = currentScopeMode === 'all'
-      ? 'Download'
-      : `Download (${scopedCount})`;
+      ? 'Download .md'
+      : `Download .md (${scopedCount})`;
+  }
+
+  const btnCopyRich = document.querySelector('#btn-copy-rich span');
+  if (btnCopyRich) {
+    btnCopyRich.textContent = currentScopeMode === 'all'
+      ? '📋 Copy Rich'
+      : `📋 Copy Rich (${scopedCount})`;
   }
 
   const btnCopyMd = document.querySelector('#btn-copy-md span');
   if (btnCopyMd) {
     btnCopyMd.textContent = currentScopeMode === 'all'
-      ? 'Copy'
-      : `Copy (${scopedCount})`;
+      ? '📝 Copy MD'
+      : `📝 Copy MD (${scopedCount})`;
   }
 
   const btnCsv = document.querySelector('#btn-export-csv span');
@@ -703,7 +821,7 @@ async function enrichConversationWithScreenshots(conv: ConversationData): Promis
 }
 
 function setupExportButtons(): void {
-  // Export PDF
+  // Print / Save to PDF
   const btnPdf = document.getElementById('btn-export-pdf');
   btnPdf?.addEventListener('click', () => {
     withLoading(btnPdf, async () => {
@@ -719,7 +837,7 @@ function setupExportButtons(): void {
         return;
       }
 
-      showToast('Preparing PDF document...');
+      showToast('🖨️ Opening print view...');
 
       const themeRadio = document.querySelector('input[name="pdf-theme"]:checked') as HTMLInputElement;
       const selectedTheme = (themeRadio?.value || 'executive') as PDFTheme;
@@ -732,7 +850,7 @@ function setupExportButtons(): void {
       try {
         const convForPdf = JSON.parse(JSON.stringify(conv));
         const finalConv = await enrichConversationWithScreenshots(convForPdf);
-        const blob = await PDFExporter.exportToPDF(finalConv, selectedTheme, {
+        await PDFExporter.printDocument(finalConv, selectedTheme, {
           format: 'pdf',
           pdfTheme: selectedTheme,
           includeReasoning,
@@ -740,18 +858,81 @@ function setupExportButtons(): void {
           includeArtifacts,
           includeImages
         });
-
-        const filename = sanitizeFilename(conv.title, 'pdf');
-        downloadBlob(blob, filename, 'application/pdf');
-        showToast('✅ PDF exported successfully!');
+        showToast('✅ Print view opened!');
       } catch (e) {
-        console.error('PDF export failed:', e);
-        showToast('❌ PDF export failed.');
+        console.error('Print view failed:', e);
+        showToast('❌ Failed to open print view.');
       }
     });
   });
 
-  // Export Markdown
+  // Copy Rich Text to Clipboard (for Google Docs, MS Word, Outlook, Slack)
+  const btnCopyRich = document.getElementById('btn-copy-rich');
+  btnCopyRich?.addEventListener('click', () => {
+    withLoading(btnCopyRich, async () => {
+      const rawConv = await getOrFetchConversation();
+      if (!rawConv || rawConv.messages.length === 0) {
+        showToast('⚠️ Please reload chat tab to connect.');
+        return;
+      }
+
+      const conv = getScopedConversation(rawConv);
+      if (conv.messages.length === 0) {
+        showToast('⚠️ No messages selected in current scope.');
+        return;
+      }
+
+      showToast('Preparing formatted clipboard...');
+
+      const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
+      const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
+      const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+      const includeImages = (document.getElementById('opt-md-images') as HTMLInputElement)?.checked ?? true;
+
+      const themeRadio = document.querySelector('input[name="pdf-theme"]:checked') as HTMLInputElement;
+      const selectedTheme = (themeRadio?.value || 'executive') as PDFTheme;
+
+      try {
+        const convForExport = JSON.parse(JSON.stringify(conv));
+        const finalConv = await enrichConversationWithScreenshots(convForExport);
+
+        const htmlContent = PDFExporter.generateDocumentHtml(finalConv, selectedTheme, {
+          format: 'pdf',
+          pdfTheme: selectedTheme,
+          includeReasoning,
+          includeCitations,
+          includeArtifacts: true,
+          includeImages
+        });
+
+        const exporter = new MarkdownExporter();
+        const markdownContent = exporter.exportToMarkdown(finalConv, {
+          format: 'markdown',
+          includeFrontmatter,
+          includeReasoning,
+          includeCitations,
+          includeImages
+        });
+
+        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+        const textBlob = new Blob([markdownContent], { type: 'text/plain' });
+
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': htmlBlob,
+            'text/plain': textBlob
+          })
+        ]);
+
+        showToast('📋 Copied Rich Text (ready for Docs/Word)!');
+      } catch (e) {
+        console.error('Rich copy failed:', e);
+        showToast('❌ Failed to copy rich text.');
+      }
+    });
+  });
+
+  // Export Markdown (.md file download)
   const btnMd = document.getElementById('btn-export-md');
   btnMd?.addEventListener('click', () => {
     withLoading(btnMd, async () => {
@@ -789,7 +970,7 @@ function setupExportButtons(): void {
     });
   });
 
-  // Copy Markdown to Clipboard
+  // Copy Plain Markdown to Clipboard (for Obsidian, Notion, GitHub)
   const btnCopyMd = document.getElementById('btn-copy-md');
   btnCopyMd?.addEventListener('click', () => {
     withLoading(btnCopyMd, async () => {
@@ -820,7 +1001,7 @@ function setupExportButtons(): void {
       });
 
       await navigator.clipboard.writeText(markdown);
-      showToast('📋 Copied Markdown to clipboard!');
+      showToast('📝 Copied Markdown (for Obsidian)!');
     });
   });
 

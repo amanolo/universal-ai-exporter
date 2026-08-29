@@ -62,4 +62,7 @@
 | | | | | | | |
 | **UAT-SMOKE-FIREFOX** | **Firefox** | Cross-Browser Smoke Audit | Load `dist/firefox` in `about:debugging` | Export 1 MD & 1 PDF on any platform | Add-on loads cleanly with dual MV3 compatibility; downloads & print dialogs trigger smoothly. | [ ] |
 | **UAT-SMOKE-EDGE** | **Edge** | Cross-Browser Smoke Audit | Load `dist/chromium` in `edge://extensions` | Export 1 MD & 1 PDF on any platform | Unpacked extension loads cleanly; full Chromium parity confirmed. | [ ] |
+| | | | | | | |
+| **UAT-RICH-DOCS** | **Universal** | Rich Text Clipboard | Any conversation with tables/code | Click **📋 Copy Rich** → Paste in Google Docs (`Cmd+V`) | Pastes with real formatted headings, styled background cards, and real editable tables. | [ ] |
+| **UAT-RICH-WORD** | **Universal** | Rich Text Clipboard | Any conversation with tables/code | Click **📋 Copy Rich** → Paste in MS Word / Outlook | Preserves inline styling, code box borders, and typography. | [ ] |
 

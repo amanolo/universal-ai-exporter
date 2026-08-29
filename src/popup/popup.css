@@ -623,6 +623,24 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-secondary {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  transform: translateY(-1px);
+}
+
+.btn-group-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .btn-group-equal {
   display: grid;
   grid-template-columns: 1fr 1fr;

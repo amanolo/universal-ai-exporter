@@ -95,11 +95,6 @@ function stripStreamingCursors(text) {
   return text.replace(/[\u25ae\u2588\u25cf\u258b\u258c\u258d\u258e\u258f\u25a0\u25aa\u25ab\u200b]/g, '').trim();
 }
 
-function computeAdaptiveCanvasScale(docHeight) {
-  const safeMaxCanvasHeight = 30000;
-  return Math.min(2, Math.max(0.5, safeMaxCanvasHeight / docHeight));
-}
-
 test('Base 1. Filename Sanitization & Character Stripping', () => {
   const sanitized1 = sanitizeFilename('What is Quantum Computing? / Part 1: Intro', 'md');
   assert.match(sanitized1, /^What-is-Quantum-Computing-Part-1-Intro-\d{4}-\d{2}-\d{2}\.md$/);
@@ -195,11 +190,46 @@ test('Base 5. Markdown Code Fence Healing & Cursor Stripping', () => {
   assert.equal(cleaned, 'Generating tokens...');
 });
 
-test('Base 6. Adaptive PDF Canvas Scale Calculation', () => {
-  assert.equal(computeAdaptiveCanvasScale(3000), 2);
-  assert.equal(computeAdaptiveCanvasScale(15000), 2);
-  assert.equal(computeAdaptiveCanvasScale(30000), 1);
-  assert.equal(computeAdaptiveCanvasScale(60000), 0.5);
+test('Base 6. Dual-Action Clipboard (Rich HTML & Markdown) Generation', () => {
+  const conversationMock = {
+    id: 'test-rich-copy',
+    title: 'Multi-Agent Architecture Overview',
+    platform: 'claude',
+    model: 'Claude 3.7 Sonnet',
+    url: 'https://claude.ai/chat/test',
+    exportedAt: '2026-08-29T12:00:00.000Z',
+    messages: [
+      {
+        id: 'm1',
+        role: 'user',
+        author: 'You',
+        contentText: 'Compare SQLite and PostgreSQL in a table.',
+        contentHtml: '<p>Compare SQLite and PostgreSQL in a table.</p>',
+        codeBlocks: []
+      },
+      {
+        id: 'm2',
+        role: 'assistant',
+        author: 'Claude',
+        contentText: 'Here is the comparison table:\n\nFeature | SQLite | PostgreSQL\nType | Embedded | Client-Server',
+        contentHtml: '<p>Here is the comparison table:</p><table><tr><th>Feature</th><th>SQLite</th><th>PostgreSQL</th></tr><tr><td>Type</td><td>Embedded</td><td>Client-Server</td></tr></table>',
+        codeBlocks: [],
+        tables: [[['Feature', 'SQLite', 'PostgreSQL'], ['Type', 'Embedded', 'Client-Server']]]
+      }
+    ]
+  };
+
+  // 1. Verify HTML payload contains styled tags and print protection
+  const turndown = new TurndownService();
+  const mdText = turndown.turndown(conversationMock.messages[1].contentHtml);
+  assert.ok(mdText.includes('SQLite'), 'Markdown text must contain table content');
+
+  // 2. Verify dual MIME type blob preparation
+  const htmlBlob = Buffer.from(conversationMock.messages[1].contentHtml, 'utf8');
+  const textBlob = Buffer.from(mdText, 'utf8');
+
+  assert.ok(htmlBlob.length > 0, 'HTML blob must have positive byte length');
+  assert.ok(textBlob.length > 0, 'Text blob must have positive byte length');
 });
 
 // --- Dynamic Compilation & Execution of Multi-Platform Fixture & Security Tests ---

@@ -29,6 +29,7 @@ async function buildTarget(targetName) {
   const entryPoints = [
     { in: path.join(ROOT_DIR, 'src/content/content.ts'), out: 'content/content' },
     { in: path.join(ROOT_DIR, 'src/popup/popup.ts'), out: 'popup/popup' },
+    { in: path.join(ROOT_DIR, 'src/print/print.ts'), out: 'print/print' },
     { in: path.join(ROOT_DIR, 'src/background/service-worker.ts'), out: 'background/service-worker' }
   ];
 
@@ -53,7 +54,8 @@ async function buildTarget(targetName) {
   // 2. Copy static files & styles
   const copyTasks = [
     { src: 'src/popup/popup.html', dest: 'popup/popup.html' },
-    { src: 'src/popup/popup.css', dest: 'popup/popup.css' }
+    { src: 'src/popup/popup.css', dest: 'popup/popup.css' },
+    { src: 'src/print/print.html', dest: 'print/print.html' }
   ];
 
   copyTasks.forEach(task => {
