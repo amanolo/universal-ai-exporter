@@ -185,3 +185,54 @@ export function extractConversationTitle(defaultTitle = 'AI Conversation'): stri
 
   return defaultTitle;
 }
+
+/**
+ * Extracts content images from an element and inlines them as Base64 data URLs when possible
+ */
+export function extractContentImages(element: Element): string[] {
+  const images: string[] = [];
+  const imgElements = element.querySelectorAll('img');
+
+  imgElements.forEach(img => {
+    const width = parseInt(img.getAttribute('width') || '100', 10);
+    const height = parseInt(img.getAttribute('height') || '100', 10);
+    const className = img.className || '';
+    const alt = img.getAttribute('alt') || '';
+    const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji|button/i.test(className + ' ' + alt);
+
+    if (isIcon) {
+      img.remove();
+      return;
+    }
+
+    let src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src || '';
+    if (!src) return;
+
+    // Try inlining to Base64 in DOM browser environment if canvas context is available
+    try {
+      if (typeof document !== 'undefined' && img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0) {
+        const canvas = document.createElement('canvas');
+        const maxW = 1200;
+        const targetW = Math.min(img.naturalWidth, maxW);
+        const scale = targetW / img.naturalWidth;
+        canvas.width = targetW;
+        canvas.height = img.naturalHeight * scale;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          if (dataUrl && dataUrl.startsWith('data:image')) {
+            img.setAttribute('src', dataUrl);
+            src = dataUrl;
+          }
+        }
+      }
+    } catch {
+      // Keep original src if cross-origin or headless canvas restriction occurs
+    }
+
+    images.push(src);
+  });
+
+  return images;
+}

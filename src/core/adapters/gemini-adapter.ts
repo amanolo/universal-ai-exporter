@@ -60,8 +60,18 @@ export class GeminiAdapter implements AIPlatformAdapter {
       const clone = turnEl.cloneNode(true) as HTMLElement;
       normalizeLatexMath(clone);
 
-      // Remove accessibility headings, action buttons, menus, and dropdowns
-      clone.querySelectorAll('h5, h6, [class*="screen-reader"], [data-test-id*="header"], button, svg, [role="menu"], [role="listbox"], bard-mode-menu, mat-menu, [class*="model-selector"]').forEach(el => {
+      // Unwrap or preserve img tags before removing buttons/action elements
+      clone.querySelectorAll('button, [role="button"], [role="menu"], [role="listbox"], bard-mode-menu, mat-menu, [class*="model-selector"]').forEach(el => {
+        const img = el.querySelector('img');
+        if (img) {
+          el.replaceWith(img);
+        } else {
+          el.remove();
+        }
+      });
+
+      // Remove accessibility headings, decorative SVGs, screen-reader headers
+      clone.querySelectorAll('h5, h6, [class*="screen-reader"], [data-test-id*="header"], svg').forEach(el => {
         el.remove();
       });
 
@@ -79,14 +89,29 @@ export class GeminiAdapter implements AIPlatformAdapter {
         }
       }
 
+      // Extract content images (exclude tiny UI icons/avatars < 32px)
+      const images: string[] = [];
+      clone.querySelectorAll('img').forEach(img => {
+        const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
+        if (src) {
+          const width = parseInt(img.getAttribute('width') || '100', 10);
+          const height = parseInt(img.getAttribute('height') || '100', 10);
+          const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(img.className || img.alt || '');
+          if (!isIcon) {
+            images.push(src);
+          }
+        }
+      });
+
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      // Skip empty or duplicate consecutive messages
-      const normalizedKey = `${role}:${contentText.trim()}`;
-      if ((contentText.trim() || reasoning || codeBlocks.length > 0) && !processedTexts.has(normalizedKey)) {
+      // Skip truly empty messages, but preserve image-only, code-only, or reasoning-only turns
+      const hasContent = contentText.trim().length > 0 || !!reasoning || codeBlocks.length > 0 || images.length > 0;
+      const normalizedKey = `${role}:${contentText.trim()}:${images.join(',')}`;
+      if (hasContent && !processedTexts.has(normalizedKey)) {
         processedTexts.add(normalizedKey);
         messages.push({
           id: `gemini-msg-${index}-${Date.now()}`,
@@ -96,7 +121,8 @@ export class GeminiAdapter implements AIPlatformAdapter {
           contentText,
           codeBlocks,
           reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
-          tables: tables.length > 0 ? tables : undefined
+          tables: tables.length > 0 ? tables : undefined,
+          images: images.length > 0 ? images : undefined
         });
       }
     });

@@ -250,3 +250,48 @@ test('Adapter 7: Stress & Edge Case Extraction (Streaming Cursors & Long Threads
   assert.equal(firstAsst.contentText.includes('█'), false, 'Must strip streaming cursor character');
   assert.equal(firstAsst.codeBlocks.length, 1);
 });
+
+test('Adapter 8: Multimodal Image Turns in Gemini (User Uploads & AI Generated Images)', async () => {
+  const multimodalHtml = `
+    <html>
+    <head><title>Cyberpunk Art Generation - Gemini</title></head>
+    <body>
+      <div class="conversation-turn user">
+        <user-query>
+          <div role="button" class="image-thumbnail">
+            <img src="https://lh3.googleusercontent.com/user-uploaded-face.png" alt="User Photo" width="200" height="200" />
+          </div>
+          <p>Κάνε εμένα σαν έναν cyberpunk ήρωα.</p>
+        </user-query>
+      </div>
+      <div class="conversation-turn model">
+        <model-response>
+          <div class="generated-image-container">
+            <img src="https://lh3.googleusercontent.com/cyberpunk-result.png" alt="Cyberpunk Artwork" width="800" height="800" />
+          </div>
+        </model-response>
+      </div>
+    </body>
+    </html>
+  `;
+  const dom = new JSDOM(multimodalHtml, { url: 'https://gemini.google.com/app/cyberpunk-123' });
+  setupDomGlobals(dom);
+
+  const adapter = new GeminiAdapter();
+  const conv = await adapter.extractConversation();
+
+  assert.equal(conv.messages.length, 2, 'Must extract both user prompt and visual-only response');
+
+  // User turn
+  const userTurn = conv.messages[0];
+  assert.equal(userTurn.role, 'user');
+  assert.ok(userTurn.contentText.includes('Κάνε εμένα σαν έναν cyberpunk ήρωα.'));
+  assert.ok(userTurn.images && userTurn.images.length === 1);
+  assert.equal(userTurn.images![0], 'https://lh3.googleusercontent.com/user-uploaded-face.png');
+
+  // AI turn (pure image response)
+  const aiTurn = conv.messages[1];
+  assert.equal(aiTurn.role, 'assistant');
+  assert.ok(aiTurn.images && aiTurn.images.length === 1);
+  assert.equal(aiTurn.images![0], 'https://lh3.googleusercontent.com/cyberpunk-result.png');
+});

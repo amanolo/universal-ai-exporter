@@ -567,6 +567,7 @@ function setupExportButtons(): void {
       const includeReasoning = (document.getElementById('opt-pdf-reasoning') as HTMLInputElement)?.checked ?? true;
       const includeCitations = (document.getElementById('opt-pdf-citations') as HTMLInputElement)?.checked ?? true;
       const includeArtifacts = (document.getElementById('opt-pdf-artifacts') as HTMLInputElement)?.checked ?? true;
+      const includeImages = (document.getElementById('opt-pdf-images') as HTMLInputElement)?.checked ?? true;
 
       try {
         const blob = await PDFExporter.exportToPDF(conv, selectedTheme, {
@@ -574,7 +575,8 @@ function setupExportButtons(): void {
           pdfTheme: selectedTheme,
           includeReasoning,
           includeCitations,
-          includeArtifacts
+          includeArtifacts,
+          includeImages
         });
 
         const filename = sanitizeFilename(conv.title, 'pdf');
@@ -608,13 +610,15 @@ function setupExportButtons(): void {
       const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
       const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
       const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+      const includeImages = (document.getElementById('opt-md-images') as HTMLInputElement)?.checked ?? true;
 
       const exporter = new MarkdownExporter();
       const markdown = exporter.exportToMarkdown(conv, {
         format: 'markdown',
         includeFrontmatter,
         includeReasoning,
-        includeCitations
+        includeCitations,
+        includeImages
       });
 
       const filename = sanitizeFilename(conv.title, 'md');
@@ -642,13 +646,15 @@ function setupExportButtons(): void {
       const includeFrontmatter = (document.getElementById('opt-md-frontmatter') as HTMLInputElement)?.checked ?? false;
       const includeReasoning = (document.getElementById('opt-md-reasoning') as HTMLInputElement)?.checked ?? true;
       const includeCitations = (document.getElementById('opt-md-citations') as HTMLInputElement)?.checked ?? true;
+      const includeImages = (document.getElementById('opt-md-images') as HTMLInputElement)?.checked ?? true;
 
       const exporter = new MarkdownExporter();
       const markdown = exporter.exportToMarkdown(conv, {
         format: 'markdown',
         includeFrontmatter,
         includeReasoning,
-        includeCitations
+        includeCitations,
+        includeImages
       });
 
       await navigator.clipboard.writeText(markdown);

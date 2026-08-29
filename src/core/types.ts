@@ -41,6 +41,7 @@ export interface ExtractedMessage {
   artifacts?: ClaudeArtifact[]; // Claude artifacts
   citations?: WebCitation[]; // Perplexity citations/sources
   tables?: string[][][]; // 3D array: tables -> rows -> cells
+  images?: string[]; // Extracted image URLs / data URIs
 }
 
 export interface ConversationData {
@@ -71,6 +72,7 @@ export interface ExportOptions {
   includeReasoning?: boolean;
   includeArtifacts?: boolean;
   includeCitations?: boolean;
+  includeImages?: boolean;
   includeFrontmatter?: boolean;
   selectedTableIndex?: number; // For CSV: -1 for all tables, or specific table index
 }

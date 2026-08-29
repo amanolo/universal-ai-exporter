@@ -82,12 +82,26 @@ export class ClaudeAdapter implements AIPlatformAdapter {
         }
       }
 
+      // Extract content images (exclude tiny UI icons/avatars < 32px)
+      const images: string[] = [];
+      clone.querySelectorAll('img').forEach(img => {
+        const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
+        if (src) {
+          const width = parseInt(img.getAttribute('width') || '100', 10);
+          const height = parseInt(img.getAttribute('height') || '100', 10);
+          const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(img.className || img.alt || '');
+          if (!isIcon) {
+            images.push(src);
+          }
+        }
+      });
+
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      if (contentText.trim() || reasoning || codeBlocks.length > 0 || artifacts.length > 0) {
+      if (contentText.trim() || reasoning || codeBlocks.length > 0 || artifacts.length > 0 || images.length > 0) {
         messages.push({
           id: `claude-msg-${index}-${Date.now()}`,
           role,
@@ -97,7 +111,8 @@ export class ClaudeAdapter implements AIPlatformAdapter {
           codeBlocks,
           reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
           artifacts: artifacts.length > 0 ? artifacts : undefined,
-          tables: tables.length > 0 ? tables : undefined
+          tables: tables.length > 0 ? tables : undefined,
+          images: images.length > 0 ? images : undefined
         });
       }
     });

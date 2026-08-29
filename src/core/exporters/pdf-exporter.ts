@@ -52,8 +52,18 @@ export class PDFExporter {
 
       let bodyHtml = msg.contentHtml || `<p>${msg.contentText}</p>`;
 
-      // Strip external decorative icons and Google Drive thumbnails to keep exports 100% local with zero CORS network requests
-      bodyHtml = bodyHtml.replace(/<img[^>]*src=["'][^"']*(?:googleusercontent\.com|googleapis\.com|gstatic\.com)[^"']*["'][^>]*>/gi, '');
+      // Render content images cleanly if includeImages is true (default); otherwise strip them
+      if (options.includeImages !== false) {
+        if (msg.images && msg.images.length > 0) {
+          const appendedImages = msg.images
+            .filter(imgUrl => !bodyHtml.includes(imgUrl))
+            .map(imgUrl => `<div style="margin: 10px 0; text-align: center;"><img src="${imgUrl}" style="max-width: 100%; max-height: 420px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); object-fit: contain;" /></div>`)
+            .join('');
+          bodyHtml += appendedImages;
+        }
+      } else {
+        bodyHtml = bodyHtml.replace(/<img[^>]*>/gi, '');
+      }
 
       // AI Reasoning HTML
       let reasoningBlock = '';
@@ -188,6 +198,16 @@ export class PDFExporter {
           th {
             background-color: ${cardBgUser};
             font-weight: 700;
+            color: ${accentCol};
+          }
+          img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            object-fit: contain;
+            display: block;
+            margin: 8px auto;
+            break-inside: avoid;
           }
           blockquote {
             margin: 12px 0;
@@ -297,10 +317,14 @@ export class PDFExporter {
         backgroundColor: theme === 'midnight' ? '#0f172a' : '#ffffff',
         windowWidth: 794,
         ignoreElements: (element) => {
-          // Ignore external decorative network images
+          // Ignore tiny decorative icons and avatars (< 24px)
           if (element.tagName === 'IMG') {
-            const src = (element as HTMLImageElement).src || '';
-            if (src.startsWith('http')) return true;
+            const img = element as HTMLImageElement;
+            const src = img.src || img.getAttribute('src') || '';
+            if (!src) return true;
+            if ((img.naturalWidth > 0 && img.naturalWidth < 24) || (img.naturalHeight > 0 && img.naturalHeight < 24)) {
+              return true;
+            }
           }
           return false;
         }

@@ -19,6 +19,31 @@ export function healCodeFences(text: string): string {
   return text;
 }
 
+/**
+ * Normalizes task list checklists into standard GFM / Obsidian format (- [ ] and - [x])
+ * Safely un-escapes Turndown brackets in bullet and numbered lists without affecting code or math.
+ */
+export function normalizeChecklists(text: string): string {
+  return text
+    // Handles: - \[ \], - \[\ \], * \[ \], 1. \[ \] -> - [ ]
+    .replace(/^(\s*(?:[-*+]|\d+\.))\s*\\?\[\s*\\?\]\s*/gm, '$1 [ ] ')
+    // Handles: - \[x\], - \[X\], - \[\ x\ \], * \[x\] -> - [x]
+    .replace(/^(\s*(?:[-*+]|\d+\.))\s*\\?\[\s*[xX✓v]\s*\\?\]\s*/gm, '$1 [x] ')
+    // Handles: - ☐ -> - [ ], - ☑ / - ☒ -> - [x]
+    .replace(/^(\s*(?:[-*+]|\d+\.))\s*☐\s*/gm, '$1 [ ] ')
+    .replace(/^(\s*(?:[-*+]|\d+\.))\s*[☑☒✔]\s*/gm, '$1 [x] ');
+}
+
+/**
+ * Un-escapes accidentally escaped characters inside web URLs (e.g. \_ in URLs)
+ * so links like https://example.com/a\_b\_c remain 100% valid and clickable
+ */
+export function cleanMarkdownUrls(text: string): string {
+  return text.replace(/(https?:\/\/[^\s\)\>\]]+)/g, (match) => {
+    return match.replace(/\\([_~*\[\]\(\)])/g, '$1');
+  });
+}
+
 export class MarkdownExporter {
   private turndown: TurndownService;
 
@@ -35,6 +60,24 @@ export class MarkdownExporter {
   }
 
   private configureTurndownRules(): void {
+    // Keep task list items as interactive Markdown checkboxes
+    this.turndown.addRule('taskListItem', {
+      filter: (node: HTMLElement) => {
+        return node.nodeName === 'LI' && (
+          node.classList.contains('task-list-item') ||
+          node.querySelector('input[type="checkbox"]') !== null
+        );
+      },
+      replacement: (_content: string, node: HTMLElement) => {
+        const checkbox = node.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+        const isChecked = checkbox ? (checkbox.checked || checkbox.hasAttribute('checked')) : /\[[xX]\]/.test(node.textContent || '');
+        const clone = node.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('input[type="checkbox"]').forEach(c => c.remove());
+        const cleanText = (clone.textContent || '').replace(/^\s*\[[ xX]\]\s*/, '').trim();
+        return `- [${isChecked ? 'x' : ' '}] ${cleanText}\n`;
+      }
+    });
+
     // Keep fenced code blocks with language tags
     this.turndown.addRule('fencedCodeBlock', {
       filter: (node: HTMLElement) => {
@@ -47,6 +90,31 @@ export class MarkdownExporter {
         const langMatch = className.match(/(?:language|lang)-([a-zA-Z0-9_+-]+)/i);
         const lang = langMatch ? langMatch[1] : (node.getAttribute('data-language') || '');
         return `\n\n\`\`\`${lang}\n${text?.trim() || ''}\n\`\`\`\n\n`;
+      }
+    });
+
+    // Custom rule for images: keep valid web URLs with clean concise alt text; filter out dead blob: memory links and tiny icons
+    this.turndown.addRule('images', {
+      filter: 'img',
+      replacement: (_content: string, node: HTMLElement) => {
+        const src = node.getAttribute('src') || node.getAttribute('data-src') || (node as HTMLImageElement).src || '';
+        if (!src) return '';
+
+        // Ignore dead browser-memory blob: links in Markdown
+        if (src.startsWith('blob:')) return '';
+
+        // Ignore UI icons and avatars
+        const width = parseInt(node.getAttribute('width') || '100', 10);
+        const height = parseInt(node.getAttribute('height') || '100', 10);
+        const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(node.className || node.getAttribute('alt') || '');
+        if (isIcon) return '';
+
+        // Clean up alt text (truncate long 500-word prompt walls to clean 60 chars)
+        let alt = (node.getAttribute('alt') || 'Image').trim();
+        if (alt.length > 60) {
+          alt = alt.slice(0, 57).trim() + '...';
+        }
+        return `\n\n![${alt.replace(/[\[\]]/g, '')}](${src})\n\n`;
       }
     });
 
@@ -128,6 +196,28 @@ export class MarkdownExporter {
       markdownContent = msg.contentText;
     }
 
+    // Ensure extracted web images are present if includeImages is true (default), or strip them if false
+    if (options.includeImages !== false) {
+      if (msg.images && msg.images.length > 0) {
+        msg.images.forEach(imgUrl => {
+          // Only append valid http/https URLs; skip dead blob: memory links
+          if (!imgUrl.startsWith('blob:') && !markdownContent.includes(imgUrl)) {
+            markdownContent += `\n\n![Image](${imgUrl})\n\n`;
+          }
+        });
+      }
+    } else {
+      markdownContent = markdownContent.replace(/!\[.*?\]\([^\)]*\)\n*/g, '');
+    }
+
+    // If message only contained a visual with no text, provide clean label
+    if (!markdownContent.trim() && msg.images && msg.images.length > 0) {
+      markdownContent = '*[AI Generated Visual]*';
+    }
+
+    // Normalize checklists and clean unescaped URLs
+    markdownContent = cleanMarkdownUrls(normalizeChecklists(markdownContent));
+
     // Auto-heal unclosed code fences within message content if exported mid-stream
     parts.push(healCodeFences(markdownContent.trim()));
     parts.push('');
@@ -201,6 +291,6 @@ export class MarkdownExporter {
     // Footer
     lines.push('\n\n*Exported with Universal AI Exporter — 100% Private & Local.*');
 
-    return healCodeFences(lines.join('\n'));
+    return healCodeFences(cleanMarkdownUrls(normalizeChecklists(lines.join('\n'))));
   }
 }
