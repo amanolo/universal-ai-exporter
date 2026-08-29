@@ -36,9 +36,15 @@ export class DeepSeekAdapter implements AIPlatformAdapter {
 
     targetTurns.forEach((turnEl, index) => {
       // Determine user vs assistant
-      const isUser = turnEl.querySelector('div[class*="user"], [data-role="user"]') !== null ||
-                     turnEl.className.includes('user') ||
-                     turnEl.className.includes('right');
+      const isAssistant = turnEl.querySelector('.ds-assistant-message-main-content, [class*="assistant-message"]') !== null ||
+                          turnEl.querySelector('div[class*="think"], div[class*="ds-think"], [class*="thought"]') !== null;
+
+      const isUser = !isAssistant && (
+        turnEl.querySelector('div[class*="user"], [data-role="user"], .ds-collapsible-text, [class*="collapsible-text"]') !== null ||
+        turnEl.className.includes('user') ||
+        turnEl.className.includes('right') ||
+        index % 2 === 0
+      );
 
       const role: 'user' | 'assistant' = isUser ? 'user' : 'assistant';
 
@@ -56,6 +62,11 @@ export class DeepSeekAdapter implements AIPlatformAdapter {
         // Remove think container from main response clone so it is cleanly separated
         thinkContainer.remove();
       }
+
+      // Remove DeepSeek code block banners, decorative corner SVGs, copy/download toolbars, action bars, and UI buttons
+      clone.querySelectorAll(
+        '.md-code-block-banner-wrap, .md-code-block-banner, .md-code-block svg, [role="button"], button, div[class*="action-bar"], div[class*="toolbar"], div[class*="feedback"]'
+      ).forEach(el => el.remove());
 
       // Extract content images (exclude tiny UI icons/avatars < 32px and deduplicate)
       const images: string[] = [];

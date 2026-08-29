@@ -161,7 +161,7 @@ function getLiveHtml() {
     const scrollJs = `
       (() => {
         try {
-          const scrollContainers = Array.from(document.querySelectorAll("main, [class*='overflow'], [class*='scroll'], [id*='chat']"));
+          const scrollContainers = Array.from(document.querySelectorAll("main, [class*='virtual'], [class*='scroll'], [class*='overflow'], [id*='chat']"));
           scrollContainers.forEach(c => { try { c.scrollTop = 0; } catch(e) {} });
           window.scrollTo(0, 0);
         } catch(e) {}

@@ -55,8 +55,8 @@
 | **UAT-09-E-ALL** | **Perplexity** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [ ] |
 | **UAT-09-E-SEL** | **Perplexity** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [ ] |
 | | | | | | | |
-| **UAT-06-C-MD** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **Markdown** | DeepSeek's thinking process is formatted in a clean collapsible callout box above the answer. | [ ] |
-| **UAT-06-C-PDF** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **PDF** | Reasoning process renders in a distinct tinted callout block. | [ ] |
+| **UAT-06-C-MD** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **Markdown** | DeepSeek's thinking process is formatted in a clean collapsible callout box above the answer. | [x] |
+| **UAT-06-C-PDF** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **PDF** | Reasoning process renders in a distinct tinted callout block. | [x] |
 | **UAT-09-D-ALL** | **DeepSeek** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [ ] |
 | **UAT-09-D-SEL** | **DeepSeek** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [ ] |
 | | | | | | | |
