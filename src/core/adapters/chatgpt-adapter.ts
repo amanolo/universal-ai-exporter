@@ -76,13 +76,14 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
         }
       });
 
-      // Remove screen-reader headers, accessibility headings, SVGs, copy buttons, edit buttons, action bars
-      clone.querySelectorAll('h4, h5, h6, [class*="sr-only"], [class*="screen-reader"], [data-test-id*="header"], svg, [aria-hidden="true"]').forEach(el => {
+      // Remove screen-reader headers, accessibility headings, SVGs, copy buttons, edit buttons, action bars, overlays
+      clone.querySelectorAll('h4, h5, h6, [class*="sr-only"], [class*="screen-reader"], [data-test-id*="header"], [data-testid*="overlay"], [aria-label*="actions"], [class*="overlay-actions"], [class*="image-gen-overlay"], svg, [aria-hidden="true"]').forEach(el => {
         const text = (el.textContent || '').trim().toLowerCase();
         if (
           text === 'chatgpt said:' || text === 'you said:' ||
           text.startsWith('chatgpt said') || text.startsWith('you said') ||
-          el.classList.contains('sr-only') || el.tagName === 'SVG'
+          el.classList.contains('sr-only') || el.tagName === 'SVG' ||
+          el.hasAttribute('data-testid') || el.hasAttribute('aria-label')
         ) {
           el.remove();
         }
@@ -106,7 +107,7 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
       const images: string[] = [];
       const seenImages = new Set<string>();
       clone.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
+        const src = img.getAttribute('data-original-src') || img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
         if (src) {
           const width = parseInt(img.getAttribute('width') || '100', 10);
           const height = parseInt(img.getAttribute('height') || '100', 10);

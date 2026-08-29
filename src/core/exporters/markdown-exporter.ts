@@ -97,7 +97,7 @@ export class MarkdownExporter {
     this.turndown.addRule('images', {
       filter: 'img',
       replacement: (_content: string, node: HTMLElement) => {
-        const src = node.getAttribute('src') || node.getAttribute('data-src') || (node as HTMLImageElement).src || '';
+        const src = node.getAttribute('data-original-src') || node.getAttribute('src') || node.getAttribute('data-src') || (node as HTMLImageElement).src || '';
         if (!src) return '';
 
         // Ignore dead browser-memory blob: links, raw data: base64 streams, and internal session endpoints in Markdown

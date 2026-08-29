@@ -57,7 +57,11 @@ export class PDFExporter {
         if (msg.images && msg.images.length > 0) {
           const uniqueImages = Array.from(new Set(msg.images));
           const appendedImages = uniqueImages
-            .filter(imgUrl => !bodyHtml.includes(imgUrl))
+            .filter(imgUrl => {
+              const cleanUrl = imgUrl.split('?')[0];
+              const escapedUrl = imgUrl.replace(/&/g, '&amp;');
+              return !bodyHtml.includes(imgUrl) && !bodyHtml.includes(escapedUrl) && (!cleanUrl || !bodyHtml.includes(cleanUrl));
+            })
             .map(imgUrl => `<div style="margin: 10px 0; text-align: center;"><img src="${imgUrl}" style="max-width: 100%; max-height: 420px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); object-fit: contain;" /></div>`)
             .join('');
           bodyHtml += appendedImages;
