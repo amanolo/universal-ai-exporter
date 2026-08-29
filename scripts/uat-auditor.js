@@ -437,12 +437,13 @@ function evaluateRules(uatId, conv, content, meta) {
 
   // UAT-05: Underscores in links
   if (uatId.startsWith('UAT-05-')) {
-    const noEscapedUrls = !content.includes('\\_');
-    const hasUrls = content.includes('http');
+    const urlMatches = content.match(/https?:\/\/[^\s\)\>\]]+/g) || [];
+    const hasUrls = urlMatches.length > 0;
+    const noEscapedUrls = urlMatches.every(u => !u.includes('\\_'));
     checks.push({
-      title: 'URL Underscore Preservation',
+      title: 'URL Underscore Preservation (No \\_ in URLs)',
       pass: noEscapedUrls && hasUrls,
-      detail: noEscapedUrls ? 'Links preserved without broken backslashes' : 'Found escaped \\_ in URL'
+      detail: noEscapedUrls && hasUrls ? `Found ${urlMatches.length} valid URL(s) with 0 escaped backslashes` : 'Found escaped \\_ inside URL or missing URLs'
     });
   }
 

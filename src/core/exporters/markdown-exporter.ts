@@ -60,24 +60,6 @@ export class MarkdownExporter {
   }
 
   private configureTurndownRules(): void {
-    // Keep task list items as interactive Markdown checkboxes
-    this.turndown.addRule('taskListItem', {
-      filter: (node: HTMLElement) => {
-        return node.nodeName === 'LI' && (
-          node.classList.contains('task-list-item') ||
-          node.querySelector('input[type="checkbox"]') !== null
-        );
-      },
-      replacement: (_content: string, node: HTMLElement) => {
-        const checkbox = node.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
-        const isChecked = checkbox ? (checkbox.checked || checkbox.hasAttribute('checked')) : /\[[xX]\]/.test(node.textContent || '');
-        const clone = node.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll('input[type="checkbox"]').forEach(c => c.remove());
-        const cleanText = (clone.textContent || '').replace(/^\s*\[[ xX]\]\s*/, '').trim();
-        return `- [${isChecked ? 'x' : ' '}] ${cleanText}\n`;
-      }
-    });
-
     // Keep fenced code blocks with language tags
     this.turndown.addRule('fencedCodeBlock', {
       filter: (node: HTMLElement) => {
@@ -189,7 +171,13 @@ export class MarkdownExporter {
     let markdownContent = '';
     if (msg.contentHtml) {
       try {
-        markdownContent = this.turndown.turndown(msg.contentHtml);
+        let htmlToProcess = msg.contentHtml;
+        // Preprocess checkbox inputs into standard text markers to preserve nested lists
+        htmlToProcess = htmlToProcess
+          .replace(/<input[^>]*type=["']checkbox["'][^>]*checked[^>]*>/gi, '[x] ')
+          .replace(/<input[^>]*checked[^>]*type=["']checkbox["'][^>]*>/gi, '[x] ')
+          .replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '[ ] ');
+        markdownContent = this.turndown.turndown(htmlToProcess);
       } catch (e) {
         markdownContent = msg.contentText;
       }
