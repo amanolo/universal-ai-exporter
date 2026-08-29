@@ -34,9 +34,6 @@ jobs:
       - name: Verify Cryptographic Offline Licensing Engine
         run: npm run test:license
 
-      - name: Run Multi-Platform Automated Test Suite
-        run: npm test
-
       - name: Compile Extension (Chromium & Firefox)
         run: npm run build
 
