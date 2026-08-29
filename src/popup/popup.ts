@@ -521,18 +521,14 @@ async function withLoading(btn: HTMLElement | null, fn: () => Promise<void>): Pr
 }
 
 async function getOrFetchConversation(): Promise<ConversationData | null> {
-  if (activeConversation && activeConversation.messages.length > 0) {
-    return activeConversation;
-  }
-
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab || !tab.id) return null;
+  if (!tab || !tab.id) return activeConversation;
 
   return new Promise((resolve) => {
     chrome.tabs.sendMessage(tab.id!, { action: 'GET_CONVERSATION' }, (res) => {
       const lastError = chrome.runtime.lastError;
       if (lastError || !res || !res.success || !res.conversation) {
-        resolve(null);
+        resolve(activeConversation);
         return;
       }
       activeConversation = res.conversation;
@@ -540,6 +536,132 @@ async function getOrFetchConversation(): Promise<ConversationData | null> {
       resolve(res.conversation);
     });
   });
+}
+
+async function cropImageFromScreenshot(screenshotUrl: string, rect: { x: number; y: number; width: number; height: number; dpr: number }): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const dpr = rect.dpr || 1;
+        const cropX = Math.round(rect.x * dpr);
+        const cropY = Math.round(rect.y * dpr);
+        const cropW = Math.round(rect.width * dpr);
+        const cropH = Math.round(rect.height * dpr);
+
+        if (cropW <= 0 || cropH <= 0 || cropX < 0 || cropY < 0 || cropX + cropW > img.width || cropY + cropH > img.height) {
+          resolve('');
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = cropW;
+        canvas.height = cropH;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+          return;
+        }
+      } catch {}
+      resolve('');
+    };
+    img.onerror = () => resolve('');
+    img.src = screenshotUrl;
+  });
+}
+
+async function enrichConversationWithScreenshots(conv: ConversationData): Promise<ConversationData> {
+  const hasImagesToCapture = conv.messages.some(m => m.images && m.images.length > 0);
+  if (!hasImagesToCapture) return conv;
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.id || !tab.windowId) return conv;
+
+    const countResult = await new Promise<number>((resolve) => {
+      chrome.tabs.sendMessage(tab.id!, { action: 'PREPARE_IMAGE_CAPTURE' }, (res) => {
+        if (chrome.runtime.lastError || !res || !res.success || typeof res.count !== 'number') {
+          resolve(0);
+        } else {
+          resolve(res.count);
+        }
+      });
+    });
+
+    if (countResult === 0) return conv;
+
+    const capturedImages: { url: string; base64: string }[] = [];
+
+    for (let index = 0; index < countResult; index++) {
+      const stepResult = await new Promise<{ success: boolean; url: string; rect: { x: number; y: number; width: number; height: number; dpr: number } }>((resolve) => {
+        chrome.tabs.sendMessage(tab.id!, { action: 'FOCUS_IMAGE_AT_INDEX', index }, (res) => {
+          if (chrome.runtime.lastError || !res || !res.success || !res.rect) {
+            resolve({ success: false, url: '', rect: { x: 0, y: 0, width: 0, height: 0, dpr: 1 } });
+          } else {
+            resolve(res);
+          }
+        });
+      });
+
+      if (stepResult.success && stepResult.rect && stepResult.rect.width > 15 && stepResult.rect.height > 15) {
+        const screenshotUrl = await new Promise<string>((resolve) => {
+          chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }, (dataUrl) => {
+            if (chrome.runtime.lastError || !dataUrl) {
+              resolve('');
+            } else {
+              resolve(dataUrl);
+            }
+          });
+        });
+
+        if (screenshotUrl) {
+          const croppedBase64 = await cropImageFromScreenshot(screenshotUrl, stepResult.rect);
+          if (croppedBase64 && croppedBase64.startsWith('data:image')) {
+            capturedImages.push({
+              url: stepResult.url,
+              base64: croppedBase64
+            });
+          }
+        }
+      }
+    }
+
+    if (capturedImages.length === 0) return conv;
+
+    let captureIndex = 0;
+    const enrichedMessages = conv.messages.map((msg) => {
+      if (!msg.images || msg.images.length === 0) return msg;
+
+      const newImages = [...msg.images];
+      let newContentHtml = msg.contentHtml;
+
+      for (let i = 0; i < newImages.length; i++) {
+        if (captureIndex < capturedImages.length) {
+          const cap = capturedImages[captureIndex++];
+          const oldUrl = newImages[i];
+          newImages[i] = cap.base64;
+          if (newContentHtml && oldUrl) {
+            newContentHtml = newContentHtml.split(oldUrl).join(cap.base64);
+          }
+        }
+      }
+
+      return {
+        ...msg,
+        images: newImages,
+        contentHtml: newContentHtml
+      };
+    });
+
+    return {
+      ...conv,
+      messages: enrichedMessages
+    };
+  } catch (e) {
+    console.error('Enrich conversation failed:', e);
+    return conv;
+  }
 }
 
 function setupExportButtons(): void {
@@ -570,7 +692,9 @@ function setupExportButtons(): void {
       const includeImages = (document.getElementById('opt-pdf-images') as HTMLInputElement)?.checked ?? true;
 
       try {
-        const blob = await PDFExporter.exportToPDF(conv, selectedTheme, {
+        const convForPdf = JSON.parse(JSON.stringify(conv));
+        const finalConv = await enrichConversationWithScreenshots(convForPdf);
+        const blob = await PDFExporter.exportToPDF(finalConv, selectedTheme, {
           format: 'pdf',
           pdfTheme: selectedTheme,
           includeReasoning,

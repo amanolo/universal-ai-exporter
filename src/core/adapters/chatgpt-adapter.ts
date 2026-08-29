@@ -25,13 +25,27 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
     const title = extractConversationTitle('ChatGPT Conversation');
     const messages: ExtractedMessage[] = [];
 
-    // Target turns by article or message container
-    const turnElements = document.querySelectorAll('article, [data-testid^="conversation-turn-"], [data-message-author-role]');
+    // Select top-level turn containers in ChatGPT (excluding nested children)
+    let rawTurns = Array.from(document.querySelectorAll('article, [data-testid^="conversation-turn-"]'));
+    if (rawTurns.length === 0) {
+      rawTurns = Array.from(document.querySelectorAll('[data-message-author-role], div[data-message-id]'));
+    }
 
-    // Track processed nodes to avoid duplicate nesting
-    const processedContainers = new Set<Element>();
+    // Deduplicate nested elements (ignore elements whose ancestor is already in rawTurns)
+    const topLevelTurns = rawTurns.filter(el => {
+      let parent = el.parentElement;
+      while (parent) {
+        if (rawTurns.includes(parent)) {
+          return false; // Child element, ignore
+        }
+        parent = parent.parentElement;
+      }
+      return true;
+    });
 
-    turnElements.forEach((turnEl, index) => {
+    const processedKeys = new Set<string>();
+
+    topLevelTurns.forEach((turnEl, index) => {
       // Find author role
       let role: 'user' | 'assistant' = 'assistant';
       const roleAttr = turnEl.getAttribute('data-message-author-role');
@@ -48,17 +62,31 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
         role = isUser ? 'user' : 'assistant';
       }
 
-      // Find content container
-      const contentEl = turnEl.querySelector('[data-message-id]') ||
-                        turnEl.querySelector('.markdown, .prose, div[class*="markdown"]') ||
-                        turnEl;
-
-      if (processedContainers.has(contentEl)) return;
-      processedContainers.add(contentEl);
-
-      // Clone content to safely normalize math
-      const clone = contentEl.cloneNode(true) as HTMLElement;
+      // Clone turn container to safely extract content and normalize math
+      const clone = turnEl.cloneNode(true) as HTMLElement;
       normalizeLatexMath(clone);
+
+      // Unwrap or preserve img tags before removing buttons/action elements
+      clone.querySelectorAll('button, [role="button"], [role="menu"], [role="listbox"]').forEach(el => {
+        const img = el.querySelector('img');
+        if (img) {
+          el.replaceWith(img);
+        } else {
+          el.remove();
+        }
+      });
+
+      // Remove screen-reader headers, accessibility headings, SVGs, copy buttons, edit buttons, action bars
+      clone.querySelectorAll('h4, h5, h6, [class*="sr-only"], [class*="screen-reader"], [data-test-id*="header"], svg, [aria-hidden="true"]').forEach(el => {
+        const text = (el.textContent || '').trim().toLowerCase();
+        if (
+          text === 'chatgpt said:' || text === 'you said:' ||
+          text.startsWith('chatgpt said') || text.startsWith('you said') ||
+          el.classList.contains('sr-only') || el.tagName === 'SVG'
+        ) {
+          el.remove();
+        }
+      });
 
       // Extract ChatGPT Reasoning / Thinking Process (OpenAI o1 / o3-mini models)
       let reasoning: string | undefined;
@@ -74,15 +102,17 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
         }
       }
 
-      // Extract content images (exclude tiny UI icons/avatars < 32px)
+      // Extract content images (exclude tiny UI icons/avatars < 32px and deduplicate)
       const images: string[] = [];
+      const seenImages = new Set<string>();
       clone.querySelectorAll('img').forEach(img => {
         const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
         if (src) {
           const width = parseInt(img.getAttribute('width') || '100', 10);
           const height = parseInt(img.getAttribute('height') || '100', 10);
           const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(img.className || img.alt || '');
-          if (!isIcon) {
+          if (!isIcon && !seenImages.has(src)) {
+            seenImages.add(src);
             images.push(src);
           }
         }
@@ -93,7 +123,11 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
       const codeBlocks = extractCodeBlocks(clone);
       const tables = extractTables(clone);
 
-      if (contentText.trim() || reasoning || codeBlocks.length > 0 || images.length > 0) {
+      const hasContent = contentText.trim().length > 0 || !!reasoning || codeBlocks.length > 0 || images.length > 0;
+      const normalizedKey = `${role}:${contentText.trim()}:${images.join(',')}`;
+
+      if (hasContent && !processedKeys.has(normalizedKey)) {
+        processedKeys.add(normalizedKey);
         messages.push({
           id: `chatgpt-msg-${index}-${Date.now()}`,
           role,

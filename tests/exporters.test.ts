@@ -327,3 +327,84 @@ While regular italics _like this_ and *this* should remain intact.
   assert.ok(cleaned.includes('[Onboarding Guide](https://example.com/files/test_file_2026.pdf)'));
   assert.ok(cleaned.includes('_like this_'), 'Non-URL italics must remain untouched');
 });
+
+test('Exporter 8: Image Deduplication in Markdown and PDF', () => {
+  const chatgptImageConv: ConversationData = {
+    id: 'conv-chatgpt-img',
+    title: 'Generate Cyberpunk Skyline',
+    platform: 'chatgpt',
+    model: 'ChatGPT',
+    url: 'https://chatgpt.com/c/skyline-123',
+    exportedAt: '2026-08-29T10:35:00.000Z',
+    messages: [
+      {
+        id: 'msg-1',
+        role: 'assistant',
+        author: 'ChatGPT',
+        contentHtml: '<p><img src="https://chatgpt.com/backend-api/estuary/content?id=file_0001&ts=100&sig=abc" alt="Generated image: Neon Rain Over Future City" /></p>',
+        contentText: '',
+        codeBlocks: [],
+        images: [
+          'https://chatgpt.com/backend-api/estuary/content?id=file_0001&ts=100&sig=abc',
+          'https://chatgpt.com/backend-api/estuary/content?id=file_0001&ts=100&sig=abc'
+        ]
+      }
+    ]
+  };
+
+  const exporter = new MarkdownExporter();
+  const md = exporter.exportToMarkdown(chatgptImageConv, { format: 'markdown', includeImages: true });
+
+  // Count occurrences of the image in markdown
+  const matches = md.match(/!\[.*?\]\(https:\/\/chatgpt\.com\/backend-api\/estuary\/content\?id=file_0001[^\)]*\)/g);
+  assert.equal(matches?.length, 1, 'Markdown must contain EXACTLY ONE image link without duplicates');
+
+  // Verify PDF HTML contains exactly one img element
+  const pdfHtml = PDFExporter.generateDocumentHtml(chatgptImageConv, 'executive', { format: 'pdf', includeImages: true });
+  const imgTagMatches = pdfHtml.match(/<img[^>]+src=["']https:\/\/chatgpt\.com\/backend-api\/estuary\/content\?id=file_0001/gi);
+  assert.equal(imgTagMatches?.length, 1, 'PDF HTML must contain EXACTLY ONE img tag without duplicates');
+});
+
+test('Exporter 9: Relative /api/ Link Filtering and V Tool Noise Stripping', () => {
+  const claudeNoiseConv: ConversationData = {
+    id: 'conv-claude-noise',
+    title: 'Image identification request',
+    platform: 'claude',
+    model: 'Claude 3.5 Sonnet',
+    url: 'https://claude.ai/chat/123',
+    exportedAt: '2026-08-29T11:40:00.000Z',
+    messages: [
+      {
+        id: 'msg-u1',
+        role: 'user',
+        author: 'You',
+        contentHtml: '<p>What is in this picture?</p><img src="/api/6bdb2585-28e7-4fe2-b1d9-e1ee6d3071b5/files/ce825ffb/preview" alt="Attachment" />',
+        contentText: 'What is in this picture?',
+        codeBlocks: [],
+        images: ['/api/6bdb2585-28e7-4fe2-b1d9-e1ee6d3071b5/files/ce825ffb/preview']
+      },
+      {
+        id: 'msg-a1',
+        role: 'assistant',
+        author: 'Claude',
+        contentHtml: '<p>V</p><p>visualize show_widget</p><p>Here is a bright sunshine scene for you ☀️</p>',
+        contentText: 'V\nvisualize show_widget\nHere is a bright sunshine scene for you ☀️',
+        codeBlocks: []
+      }
+    ]
+  };
+
+  const exporter = new MarkdownExporter();
+  const md = exporter.exportToMarkdown(claudeNoiseConv, { format: 'markdown', includeImages: true });
+
+  // 1. Must filter out relative /api/ link
+  assert.equal(md.includes('/api/6bdb2585'), false, 'Relative /api/ attachment links must be excluded from Markdown');
+  assert.equal(md.includes('![Image](/api/'), false, 'No relative image markdown tags');
+
+  // 2. Must filter out single-line 'V' and 'visualize show_widget'
+  assert.equal(md.includes('\nV\n'), false, 'Stray V lines must be removed');
+  assert.equal(md.includes('visualize show_widget'), false, 'Tool commands must be removed');
+  assert.ok(md.includes('Here is a bright sunshine scene for you ☀️'));
+});
+
+

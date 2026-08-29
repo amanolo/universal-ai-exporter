@@ -49,7 +49,8 @@ export class GeminiAdapter implements AIPlatformAdapter {
 
     const processedTexts = new Set<string>();
 
-    topLevelTurns.forEach((turnEl, index) => {
+    for (let index = 0; index < topLevelTurns.length; index++) {
+      const turnEl = topLevelTurns[index];
       const tagName = turnEl.tagName.toLowerCase();
       const isUser = tagName.includes('user') ||
                      turnEl.className.includes('user') ||
@@ -89,19 +90,51 @@ export class GeminiAdapter implements AIPlatformAdapter {
         }
       }
 
-      // Extract content images (exclude tiny UI icons/avatars < 32px)
+      // Extract content images (exclude tiny UI icons/avatars < 32px and isolate strictly to current turn)
       const images: string[] = [];
-      clone.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
-        if (src) {
+      const imageRects: { x: number; y: number; width: number; height: number; dpr: number }[] = [];
+      const seenImages = new Set<string>();
+
+      const scanRoots: Element[] = [turnEl];
+      if (isUser && turnEl.parentElement) {
+        const userContainer = turnEl.closest('user-query, [data-test-id*="user-query"], [class*="user-query"]') || null;
+        if (userContainer && userContainer !== turnEl) {
+          scanRoots.push(userContainer);
+        }
+      }
+
+      for (const root of scanRoots) {
+        const imgElements = Array.from(root.querySelectorAll('img'));
+        for (const img of imgElements) {
+          const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
+          if (!src) continue;
+
           const width = parseInt(img.getAttribute('width') || '100', 10);
           const height = parseInt(img.getAttribute('height') || '100', 10);
-          const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(img.className || img.alt || '');
-          if (!isIcon) {
+          const isTiny = (width > 0 && width < 32) || (height > 0 && height < 32);
+          const isUiGlyph = /favicon|emoji|ui-icon/i.test(img.className || '');
+          if (isTiny || isUiGlyph) continue;
+
+          if (!seenImages.has(src)) {
+            seenImages.add(src);
             images.push(src);
+
+            try {
+              const rect = img.getBoundingClientRect();
+              if (rect.width > 20 && rect.height > 20) {
+                const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+                imageRects.push({
+                  x: rect.left,
+                  y: rect.top,
+                  width: rect.width,
+                  height: rect.height,
+                  dpr
+                });
+              }
+            } catch {}
           }
         }
-      });
+      }
 
       const contentHtml = clone.innerHTML;
       const contentText = extractCleanText(clone);
@@ -122,10 +155,11 @@ export class GeminiAdapter implements AIPlatformAdapter {
           codeBlocks,
           reasoning: reasoning && reasoning.length > 0 ? reasoning : undefined,
           tables: tables.length > 0 ? tables : undefined,
-          images: images.length > 0 ? images : undefined
+          images: images.length > 0 ? images : undefined,
+          imageRects: imageRects.length > 0 ? imageRects : undefined
         });
       }
-    });
+    }
 
     const totalTablesCount = messages.reduce((acc, m) => acc + (m.tables?.length || 0), 0);
 

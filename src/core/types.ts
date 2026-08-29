@@ -42,6 +42,7 @@ export interface ExtractedMessage {
   citations?: WebCitation[]; // Perplexity citations/sources
   tables?: string[][][]; // 3D array: tables -> rows -> cells
   images?: string[]; // Extracted image URLs / data URIs
+  imageRects?: { x: number; y: number; width: number; height: number; dpr: number }[]; // In-page coordinates for lossless capture
 }
 
 export interface ConversationData {

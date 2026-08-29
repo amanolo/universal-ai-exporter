@@ -100,14 +100,15 @@ export class MarkdownExporter {
         const src = node.getAttribute('src') || node.getAttribute('data-src') || (node as HTMLImageElement).src || '';
         if (!src) return '';
 
-        // Ignore dead browser-memory blob: links in Markdown
-        if (src.startsWith('blob:')) return '';
+        // Ignore dead browser-memory blob: links, raw data: base64 streams, and internal session endpoints in Markdown
+        if (src.startsWith('blob:') || src.startsWith('data:') || src.startsWith('/api/') || (src.startsWith('/') && !src.startsWith('//')) || src.includes('/api/')) return '';
 
-        // Ignore UI icons and avatars
+        // Ignore tiny UI icons and avatars (dimensions < 32px or explicit emoji/favicons)
         const width = parseInt(node.getAttribute('width') || '100', 10);
         const height = parseInt(node.getAttribute('height') || '100', 10);
-        const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(node.className || node.getAttribute('alt') || '');
-        if (isIcon) return '';
+        const isTiny = (width > 0 && width < 32) || (height > 0 && height < 32);
+        const isUiGlyph = /favicon|emoji|ui-icon/i.test(node.className || '');
+        if (isTiny || isUiGlyph) return '';
 
         // Clean up alt text (truncate long 500-word prompt walls to clean 60 chars)
         let alt = (node.getAttribute('alt') || 'Image').trim();
@@ -196,13 +197,32 @@ export class MarkdownExporter {
       markdownContent = msg.contentText;
     }
 
+    // Normalize checklists and clean unescaped URLs first
+    markdownContent = cleanMarkdownUrls(normalizeChecklists(markdownContent));
+
     // Ensure extracted web images are present if includeImages is true (default), or strip them if false
     if (options.includeImages !== false) {
       if (msg.images && msg.images.length > 0) {
+        const seenUrls = new Set<string>();
+        // Match all already-rendered Markdown image URLs
+        const existingImgMatches = Array.from(markdownContent.matchAll(/!\[.*?\]\((.*?)\)/g));
+        existingImgMatches.forEach(m => {
+          if (m[1]) seenUrls.add(m[1].trim());
+        });
+
         msg.images.forEach(imgUrl => {
-          // Only append valid http/https URLs; skip dead blob: memory links
-          if (!imgUrl.startsWith('blob:') && !markdownContent.includes(imgUrl)) {
-            markdownContent += `\n\n![Image](${imgUrl})\n\n`;
+          // Only append valid external public HTTP/HTTPS URLs (ignore local blobs, relative APIs, or base64 streams in raw markdown)
+          const isInternalLink = imgUrl.startsWith('blob:') || imgUrl.startsWith('/api/') || imgUrl.startsWith('data:') || (imgUrl.startsWith('/') && !imgUrl.startsWith('//')) || imgUrl.includes('claude.ai/api/');
+          if (!isInternalLink && (imgUrl.startsWith('http://') || imgUrl.startsWith('https://'))) {
+            const isAlreadyRendered = Array.from(seenUrls).some(u =>
+              u === imgUrl ||
+              (u.length > 15 && imgUrl.includes(u)) ||
+              (imgUrl.length > 15 && u.includes(imgUrl))
+            );
+            if (!isAlreadyRendered) {
+              seenUrls.add(imgUrl);
+              markdownContent += `\n\n![Image](${imgUrl})\n\n`;
+            }
           }
         });
       }
@@ -210,13 +230,24 @@ export class MarkdownExporter {
       markdownContent = markdownContent.replace(/!\[.*?\]\([^\)]*\)\n*/g, '');
     }
 
-    // If message only contained a visual with no text, provide clean label
-    if (!markdownContent.trim() && msg.images && msg.images.length > 0) {
-      markdownContent = '*[AI Generated Visual]*';
-    }
+    // Clean residual single-character tool noise (like 'V' or 'visualize')
+    markdownContent = markdownContent
+      .split('\n')
+      .filter(line => {
+        const trimmed = line.trim();
+        return trimmed !== 'V' && trimmed !== 'v' && trimmed.toLowerCase() !== 'visualize' && trimmed.toLowerCase() !== 'show_widget' && trimmed.toLowerCase() !== 'visualize show_widget';
+      })
+      .join('\n');
 
-    // Normalize checklists and clean unescaped URLs
-    markdownContent = cleanMarkdownUrls(normalizeChecklists(markdownContent));
+    // If message only contained a visual with no text, render image link if available or clean label
+    if (!markdownContent.trim() && msg.images && msg.images.length > 0 && options.includeImages !== false) {
+      const validWebImages = msg.images.filter(img => img.startsWith('http://') || img.startsWith('https://'));
+      if (validWebImages.length > 0) {
+        markdownContent = validWebImages.map(img => `![Generated Image](${img})`).join('\n\n');
+      } else {
+        markdownContent = '*[AI Generated Visual]*';
+      }
+    }
 
     // Auto-heal unclosed code fences within message content if exported mid-stream
     parts.push(healCodeFences(markdownContent.trim()));

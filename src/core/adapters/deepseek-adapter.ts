@@ -57,15 +57,17 @@ export class DeepSeekAdapter implements AIPlatformAdapter {
         thinkContainer.remove();
       }
 
-      // Extract content images (exclude tiny UI icons/avatars < 32px)
+      // Extract content images (exclude tiny UI icons/avatars < 32px and deduplicate)
       const images: string[] = [];
+      const seenImages = new Set<string>();
       clone.querySelectorAll('img').forEach(img => {
         const src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
         if (src) {
           const width = parseInt(img.getAttribute('width') || '100', 10);
           const height = parseInt(img.getAttribute('height') || '100', 10);
           const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji/i.test(img.className || img.alt || '');
-          if (!isIcon) {
+          if (!isIcon && !seenImages.has(src)) {
+            seenImages.add(src);
             images.push(src);
           }
         }

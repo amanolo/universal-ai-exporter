@@ -55,7 +55,8 @@ export class PDFExporter {
       // Render content images cleanly if includeImages is true (default); otherwise strip them
       if (options.includeImages !== false) {
         if (msg.images && msg.images.length > 0) {
-          const appendedImages = msg.images
+          const uniqueImages = Array.from(new Set(msg.images));
+          const appendedImages = uniqueImages
             .filter(imgUrl => !bodyHtml.includes(imgUrl))
             .map(imgUrl => `<div style="margin: 10px 0; text-align: center;"><img src="${imgUrl}" style="max-width: 100%; max-height: 420px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); object-fit: contain;" /></div>`)
             .join('');
@@ -81,12 +82,24 @@ export class PDFExporter {
       // Claude Artifacts
       let artifactsBlock = '';
       if (msg.artifacts && msg.artifacts.length > 0 && options.includeArtifacts !== false) {
-        artifactsBlock = msg.artifacts.map(art => `
-          <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 6px; background: ${codeBg}; padding: 12px; break-inside: avoid;">
-            <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px;">📦 ARTIFACT: ${escapeHtml(art.title)} (${art.type})</div>
-            <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;"><code>${escapeHtml(art.content)}</code></pre>
-          </div>
-        `).join('');
+        artifactsBlock = msg.artifacts.map(art => {
+          if (art.type === 'svg') {
+            return `
+              <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 8px; background: ${isDark ? '#0f172a' : '#f8fafc'}; padding: 14px; text-align: center; break-inside: avoid;">
+                <div style="font-size: 11px; font-weight: 700; color: ${accentCol}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">🎨 Graphic: ${escapeHtml(art.title)}</div>
+                <div style="max-width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                  ${art.content}
+                </div>
+              </div>
+            `;
+          }
+          return `
+            <div style="margin: 14px 0; border: 1px solid ${cardBorder}; border-radius: 6px; background: ${codeBg}; padding: 12px; break-inside: avoid;">
+              <div style="font-size: 12px; font-weight: 700; color: ${accentCol}; margin-bottom: 6px;">📦 ARTIFACT: ${escapeHtml(art.title)} (${art.type})</div>
+              <pre style="margin: 0; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;"><code>${escapeHtml(art.content)}</code></pre>
+            </div>
+          `;
+        }).join('');
       }
 
       // Perplexity Citations
@@ -209,6 +222,14 @@ export class PDFExporter {
             margin: 8px auto;
             break-inside: avoid;
           }
+          svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px auto;
+            border-radius: 6px;
+            break-inside: avoid;
+          }
           blockquote {
             margin: 12px 0;
             padding: 8px 16px;
@@ -286,7 +307,7 @@ export class PDFExporter {
 
     try {
       await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => resolve(), 1500); // Fallback if onload doesn't fire
+        const timeout = setTimeout(() => resolve(), 2500); // Fallback if onload doesn't fire
         iframe.onload = () => {
           clearTimeout(timeout);
           resolve();
@@ -301,6 +322,18 @@ export class PDFExporter {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!iframeDoc || !iframeDoc.body) {
         throw new Error('Failed to access PDF sandbox document');
+      }
+
+      // Wait for any embedded remote or blob images to finish decoding/loading before canvas capture
+      const imgElements = Array.from(iframeDoc.querySelectorAll('img'));
+      if (imgElements.length > 0) {
+        await Promise.race([
+          Promise.all(imgElements.map(img => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+            return img.decode().catch(() => {});
+          })),
+          new Promise(r => setTimeout(r, 2000))
+        ]);
       }
 
       // 1. Calculate dynamic adaptive scale to prevent browser GPU canvas dimension overflow (>32,767px)
@@ -341,13 +374,15 @@ export class PDFExporter {
       // Calculate how many canvas pixels correspond to one A4 printable height
       const pageCanvasHeight = (canvas.width * printHeightPt) / printWidthPt;
 
-      // Measure block-level message card boundaries for element-aware slice snapping
+      // Measure block-level boundaries for element-aware slice snapping (cards, images, tables, code blocks)
       const scale = canvas.width / (iframeDoc.body.clientWidth || 794);
       const bodyRect = iframeDoc.body.getBoundingClientRect();
-      const blockElements = Array.from(iframeDoc.querySelectorAll('.message-turn, .header-banner'));
+      const blockElements = Array.from(iframeDoc.querySelectorAll('.message-turn, .header-banner, img, table, pre, blockquote, [class*="image"], [class*="card"]'));
       const blockBounds = blockElements.map(el => {
         const r = el.getBoundingClientRect();
+        const isImage = el.tagName === 'IMG' || el.classList.contains('image-container');
         return {
+          isImage,
           top: (r.top - bodyRect.top) * scale,
           bottom: (r.bottom - bodyRect.top) * scale
         };
@@ -369,16 +404,21 @@ export class PDFExporter {
         let snapY = nextY;
         for (const block of blockBounds) {
           if (block.top < nextY && block.bottom > nextY) {
+            // If an image straddles the page boundary, ALWAYS push it to the next page to prevent cutting it in half
+            if (block.isImage && block.top > currentY + 40) {
+              snapY = block.top - 10;
+              break;
+            }
             const reduction = nextY - block.top;
-            // Snap to block top if reduction is less than 22% of page height
-            if (block.top > currentY && reduction < pageCanvasHeight * 0.22) {
-              snapY = block.top;
+            // Snap to block top if reduction is reasonable
+            if (block.top > currentY && reduction < pageCanvasHeight * 0.35) {
+              snapY = block.top - 8;
               break;
             }
           }
         }
 
-        const sliceHeight = Math.max(snapY - currentY, pageCanvasHeight * 0.5);
+        const sliceHeight = Math.max(snapY - currentY, pageCanvasHeight * 0.4);
         pageSlices.push({ y: currentY, height: sliceHeight });
         currentY += sliceHeight;
       }
