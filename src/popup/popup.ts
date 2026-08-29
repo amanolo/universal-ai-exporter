@@ -414,6 +414,39 @@ function updateScopeUI(): void {
     tableCountLabel.textContent = `${scoped.totalTablesCount} Table${scoped.totalTablesCount === 1 ? '' : 's'} in Scope`;
   }
 
+  // Populate Table Dropdown Selector in CSV tab when multiple tables exist
+  const selectGroup = document.getElementById('csv-select-group');
+  const tableSelect = document.getElementById('csv-table-select') as HTMLSelectElement | null;
+  if (selectGroup && tableSelect) {
+    if (scoped.totalTablesCount > 1) {
+      selectGroup.style.display = 'flex';
+      const allScopedTables: { preview: string; rows: number }[] = [];
+      scoped.messages.forEach(msg => {
+        if (msg.tables && msg.tables.length > 0) {
+          msg.tables.forEach(t => {
+            const firstRow = t[0] || [];
+            const preview = firstRow.slice(0, 3).join(', ').slice(0, 26);
+            allScopedTables.push({
+              preview: preview || 'Table',
+              rows: t.length
+            });
+          });
+        }
+      });
+
+      const savedVal = tableSelect.value;
+      tableSelect.innerHTML = `<option value="-1">All Tables in Scope (${allScopedTables.length} Tables)</option>` +
+        allScopedTables.map((t, idx) => `<option value="${idx}">Table ${idx + 1}: ${t.preview} (${t.rows} rows)</option>`).join('');
+
+      if (savedVal && parseInt(savedVal, 10) < allScopedTables.length) {
+        tableSelect.value = savedVal;
+      }
+    } else {
+      selectGroup.style.display = 'none';
+      tableSelect.innerHTML = `<option value="-1">All Tables in Scope</option>`;
+    }
+  }
+
   // Export button labels
   const btnPdf = document.querySelector('#btn-export-pdf span');
   if (btnPdf) {
@@ -438,9 +471,14 @@ function updateScopeUI(): void {
 
   const btnCsv = document.querySelector('#btn-export-csv span');
   if (btnCsv) {
-    btnCsv.textContent = scoped.totalTablesCount > 0
-      ? `Export ${scoped.totalTablesCount} Table${scoped.totalTablesCount === 1 ? '' : 's'} to CSV`
-      : 'Export Tables to CSV';
+    const selectedIdx = tableSelect ? parseInt(tableSelect.value, 10) : -1;
+    if (scoped.totalTablesCount === 0) {
+      btnCsv.textContent = 'Export Tables to CSV';
+    } else if (selectedIdx >= 0) {
+      btnCsv.textContent = `Export Table ${selectedIdx + 1} to CSV`;
+    } else {
+      btnCsv.textContent = `Export ${scoped.totalTablesCount} Table${scoped.totalTablesCount === 1 ? '' : 's'} to CSV`;
+    }
   }
 }
 
@@ -786,6 +824,21 @@ function setupExportButtons(): void {
     });
   });
 
+  // Table selection change in CSV tab
+  const tableSelect = document.getElementById('csv-table-select') as HTMLSelectElement | null;
+  tableSelect?.addEventListener('change', () => {
+    if (!activeConversation) return;
+    const scoped = getScopedConversation(activeConversation);
+    const btnCsvSpan = document.querySelector('#btn-export-csv span');
+    if (!btnCsvSpan) return;
+    const selectedIdx = parseInt(tableSelect.value, 10);
+    if (selectedIdx >= 0) {
+      btnCsvSpan.textContent = `Export Table ${selectedIdx + 1} to CSV`;
+    } else {
+      btnCsvSpan.textContent = `Export ${scoped.totalTablesCount} Table${scoped.totalTablesCount === 1 ? '' : 's'} to CSV`;
+    }
+  });
+
   // Export CSV
   const btnCsv = document.getElementById('btn-export-csv');
   btnCsv?.addEventListener('click', () => {
@@ -802,10 +855,15 @@ function setupExportButtons(): void {
         return;
       }
 
-      showToast('Extracting tables...');
+      showToast('Extracting table(s)...');
 
-      const result = CSVExporter.exportTables(conv);
-      const filename = sanitizeFilename(`${conv.title}-tables`, 'csv');
+      const selectedIdx = tableSelect ? parseInt(tableSelect.value, 10) : -1;
+      const result = selectedIdx >= 0
+        ? CSVExporter.exportTables(conv, selectedIdx)
+        : CSVExporter.exportTables(conv);
+
+      const filenameSuffix = selectedIdx >= 0 ? `-table-${selectedIdx + 1}` : '-tables';
+      const filename = sanitizeFilename(`${conv.title}${filenameSuffix}`, 'csv');
       downloadBlob(result.csvContent, filename, 'text/csv');
       showToast(`✅ Exported ${result.count} table(s) to CSV!`);
     });

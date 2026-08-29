@@ -11,7 +11,7 @@
 | **UAT-06-A-MD** | **ChatGPT** | Reasoning Traces (o3-mini) | Logic or math problem with o3-mini | Export to **Markdown** | Thought process is tucked into a collapsible `> [!note]- 🧠 Reasoning Process` box. | [ ] |
 | **UAT-06-A-PDF** | **ChatGPT** | Reasoning Traces (o3-mini) | Logic or math problem with o3-mini | Export to **PDF** | Thought process appears inside a tinted "Reasoning Process" callout block. | [ ] |
 | **UAT-09-A-ALL** | **ChatGPT** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports a multi-table spreadsheet with headers that opens directly in Excel. | [x] |
-| **UAT-09-A-SEL** | **ChatGPT** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports only the selected table as a single CSV file. | [ ] |
+| **UAT-09-A-SEL** | **ChatGPT** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports only the selected table as a single CSV file. | [x] |
 | **UAT-10-A-EXEC** | **ChatGPT** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Clean, modern light layout with subtle card borders. | [ ] |
 | **UAT-10-A-MID** | **ChatGPT** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark slate OLED background with high-contrast text. | [ ] |
 | **UAT-10-A-ACAD** | **ChatGPT** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal book-style serif typography and clean dividers. | [ ] |
