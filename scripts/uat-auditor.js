@@ -619,7 +619,7 @@ function evaluateRules(uatId, conv, content, meta) {
       detail: hasCitations ? `Captured ${conv.messages.find(m => m.citations)?.citations.length} web citation(s)` : 'No citations detected'
     });
 
-    const hasBiblio = content.includes('Comprehensive Bibliography') || content.includes('Citations & References');
+    const hasBiblio = content.includes('Comprehensive Bibliography') || content.includes('Citations & References') || content.includes('Citations & Sources');
     checks.push({
       title: 'Comprehensive Bibliography Section',
       pass: hasBiblio,

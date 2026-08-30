@@ -49,11 +49,11 @@
 | **UAT-10-C-ACAD** | **Gemini** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal serif academic theme. | [x] |
 | **UAT-11-C** | **Gemini** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without splitting across page boundaries. | [x] |
 | | | | | | | |
-| **UAT-05-A** | **Perplexity** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [ ] |
-| **UAT-08-MD** | **Perplexity** | Web Citations & Sources | Research question with web sources | Export to **Markdown** | Reference numbers like `[1]` link to sources + comprehensive bibliography at bottom. | [ ] |
-| **UAT-08-PDF** | **Perplexity** | Web Citations & Sources | Research question with web sources | Export to **PDF** | Formatted citation badges and bibliography card in PDF. | [ ] |
-| **UAT-09-E-ALL** | **Perplexity** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [ ] |
-| **UAT-09-E-SEL** | **Perplexity** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [ ] |
+| **UAT-05-A** | **Perplexity** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [x] |
+| **UAT-08-MD** | **Perplexity** | Web Citations & Sources | Research question with web sources | Export to **Markdown** | Reference numbers like `[1]` link to sources + comprehensive bibliography at bottom. | [x] |
+| **UAT-08-PDF** | **Perplexity** | Web Citations & Sources | Research question with web sources | Export to **PDF** | Formatted citation badges and bibliography card in PDF. | [x] |
+| **UAT-09-E-ALL** | **Perplexity** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [x] |
+| **UAT-09-E-SEL** | **Perplexity** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [x] |
 | | | | | | | |
 | **UAT-06-C-MD** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **Markdown** | DeepSeek's thinking process is formatted in a clean collapsible callout box above the answer. | [x] |
 | **UAT-06-C-PDF** | **DeepSeek** | Reasoning Traces (<think>) | Logic or coding question | Export to **PDF** | Reasoning process renders in a distinct tinted callout block. | [x] |

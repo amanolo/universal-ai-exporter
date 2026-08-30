@@ -100,6 +100,11 @@ export function extractTables(element: Element): string[][][] {
   const tableElements = element.querySelectorAll('table');
 
   tableElements.forEach(table => {
+    // Ignore hidden or sticky clone header tables (e.g. Perplexity scroll-pinning clones)
+    if (table.closest('[aria-hidden="true"]') || table.getAttribute('aria-hidden') === 'true') {
+      return;
+    }
+
     const tableData: string[][] = [];
     const rows = table.querySelectorAll('tr');
 
@@ -115,7 +120,9 @@ export function extractTables(element: Element): string[][][] {
       }
     });
 
-    if (tableData.length > 0) {
+    // Only include tables that have actual data rows (contains at least one td cell)
+    const hasDataCells = table.querySelectorAll('td').length > 0;
+    if (tableData.length > 0 && hasDataCells) {
       tables.push(tableData);
     }
   });
