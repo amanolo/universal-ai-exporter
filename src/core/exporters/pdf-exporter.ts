@@ -142,22 +142,23 @@ export class PDFExporter {
   <title>${escapeHtml(conversation.title || 'AI Conversation Export')}</title>
   <style>
     @page {
-      margin: 15mm;
+      margin: 15mm 18mm;
       size: A4 portrait;
     }
     @media print {
       .no-print {
         display: none !important;
       }
-      body {
-        margin: 0 !important;
-        padding: 0 !important;
+      html, body {
         background: ${bgCol} !important;
         color: ${textCol} !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      .message-turn, .header-banner, pre, table, blockquote, img, svg, .doc-footer {
+      .header-banner {
+        padding-top: 8px !important;
+      }
+      .message-turn, pre, table, blockquote, img, svg, .doc-footer {
         break-inside: avoid !important;
         page-break-inside: avoid !important;
       }
@@ -169,12 +170,19 @@ export class PDFExporter {
     * {
       box-sizing: border-box;
     }
+    html {
+      background-color: ${bgCol};
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
     body {
       font-family: ${fontFamily};
       background-color: ${bgCol};
       color: ${textCol};
-      margin: 0;
-      padding: 24px 32px;
+      margin: 0 auto;
+      padding: 28px 32px;
+      max-width: 900px;
       font-size: 13.5px;
       line-height: 1.6;
       -webkit-print-color-adjust: exact;
@@ -212,6 +220,7 @@ export class PDFExporter {
     }
     .header-banner {
       border-bottom: 2px solid ${accentCol};
+      padding-top: 16px;
       padding-bottom: 14px;
       margin-bottom: 22px;
       display: flex;
@@ -223,8 +232,8 @@ export class PDFExporter {
       font-size: 20px;
       font-weight: 800;
       color: ${textCol};
-      margin: 0 0 6px 0;
-      line-height: 1.2;
+      margin: 0 0 8px 0;
+      line-height: 1.35;
     }
     .doc-meta {
       font-size: 11.5px;
