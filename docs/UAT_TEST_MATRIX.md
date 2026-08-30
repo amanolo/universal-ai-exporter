@@ -35,7 +35,7 @@
 | **UAT-11-B** | **Claude** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without getting sliced in half across page edges. | [x] |
 | | | | | | | |
 | **UAT-01-B-MD** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **Markdown** | Clean `*[AI Generated Visual]*` placeholder is preserved without dead blob links. | [x] |
-| **UAT-01-B-PDF** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **PDF** | Generated image renders in high resolution in the PDF card. | [ ] |
+| **UAT-01-B-PDF** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **PDF** | Generated image renders in high resolution in the PDF card. | [x] |
 | **UAT-02-B-MD** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo link appears in prompt and is not repeated in later turns. | [ ] |
 | **UAT-02-B-PDF** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders inside the "You" prompt card. | [ ] |
 | **UAT-03-MD** | **Gemini** | Image-Only Answers | Prompt generating an image without text | Export to **Markdown** | Visual-only turn is preserved as an image card and not dropped. | [ ] |

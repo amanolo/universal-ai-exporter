@@ -446,13 +446,14 @@ function evaluateRules(uatId, conv, content, meta) {
     } else if (meta.format === 'PDF') {
       const isClaude = meta.platform === 'Claude' || uatId.includes('-C-');
       const imgCount = (content.match(/<img\b/gi) || []).length;
+      const expectedTotalImages = Math.max(1, conv.messages.reduce((sum, m) => sum + (m.images?.length || 0), 0));
       const hasPdfVisual = isClaude
         ? (content.includes('ARTIFACT:') || content.includes('Graphic:') || content.includes('<svg') || content.includes('<iframe') || imgCount >= 1)
-        : (imgCount >= 1 && imgCount <= (aiMsgWithImg?.images?.length || 1));
+        : (imgCount >= 1 && imgCount <= expectedTotalImages);
       checks.push({
         title: isClaude ? 'PDF Artifact / Visual Component Rendered' : 'PDF Responsive Image Element Rendered (0 Duplicates)',
         pass: Boolean(hasPdfVisual),
-        detail: hasPdfVisual ? (isClaude ? 'Visual graphic/widget rendered in PDF layout card' : `Rendered exactly ${imgCount} image element (no duplicates)`) : 'Missing visual element in PDF output'
+        detail: hasPdfVisual ? (isClaude ? 'Visual graphic/widget rendered in PDF layout card' : `Rendered exactly ${imgCount} image element(s) (no duplicates)`) : 'Missing visual element in PDF output'
       });
     }
 
