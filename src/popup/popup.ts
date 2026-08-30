@@ -130,6 +130,13 @@ function onConversationLoaded(conv: ConversationData): void {
   selectedCustomTurnIds = new Set(conv.messages.map(m => m.id));
   renderCustomTurnsList(conv);
   updateScopeUI();
+
+  // Contextual Long Thread Notice: If on ChatGPT and first turn is assistant (top prompt unrendered above viewport)
+  const isVirtualThread = conv.platform === 'chatgpt' && conv.messages.length > 0 && conv.messages[0].role === 'assistant';
+  const noticeEl = document.getElementById('long-thread-notice');
+  if (noticeEl) {
+    noticeEl.style.display = isVirtualThread ? 'flex' : 'none';
+  }
 }
 
 function updatePlatformStatus(title: string, details: string, isActive: boolean, showReload = false): void {
