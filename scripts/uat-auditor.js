@@ -189,11 +189,15 @@ end tell
 
             // Auto-expand any tool request/response buttons to reveal vector SVG / widget code
             const toolButtons = Array.from(document.querySelectorAll("button[aria-label='View request/response'], button[aria-label*='request/response']"));
-            toolButtons.forEach(b => { try { b.click(); } catch(e) {} });
+            const hasMountedPayload = Array.from(document.querySelectorAll("pre, code")).some(c => c.textContent && c.textContent.includes('widget_code'));
+            if (!hasMountedPayload) {
+              toolButtons.forEach(b => { try { b.click(); } catch(e) {} });
+            }
           } catch(e) {}
           return "ok";
         })()
       `;
+      
       const scrollAppleScript = `
 tell application "Google Chrome"
   set jsCode to ${JSON.stringify(scrollJs)}
@@ -204,8 +208,8 @@ end tell
 `;
       execSync('osascript', { input: scrollAppleScript, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
 
-      // Wait 150ms synchronously for React virtual DOM to mount top nodes
-      execSync('sleep 0.15');
+      // Wait 350ms synchronously for React virtual DOM to mount top nodes & tool payloads
+      execSync('sleep 0.35');
 
       // Phase 2: Capture the full mounted DOM and inline high-res images
       const js = `

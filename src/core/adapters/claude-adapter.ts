@@ -328,7 +328,7 @@ export class ClaudeAdapter implements AIPlatformAdapter {
       });
 
       // Remove tool call containers, buttons, and raw tool payload JSON from the clone while preserving conversation text
-      clone.querySelectorAll('[id*="mcp-app"], [id*="toolu_"], details, summary, button').forEach(el => {
+      clone.querySelectorAll('[id*="mcp-app"], [id*="toolu_"], details, summary, button, div[class*="font-ui"], div[class*="min-h-"]').forEach(el => {
         el.remove();
       });
 
@@ -362,6 +362,18 @@ export class ClaudeAdapter implements AIPlatformAdapter {
           }
         }
       });
+
+      // Remove empty container divs left over after tool stripping
+      let removedAny = true;
+      while (removedAny) {
+        removedAny = false;
+        clone.querySelectorAll('div, span, section').forEach(el => {
+          if (!el.textContent?.trim() && !el.querySelector('img, svg, table, pre, code, iframe')) {
+            el.remove();
+            removedAny = true;
+          }
+        });
+      }
 
       const contentHtml = clone.innerHTML;
       let contentText = extractCleanText(clone);
