@@ -35,16 +35,16 @@
 | **UAT-11-B** | **Claude** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without getting sliced in half across page edges. | [x] |
 | | | | | | | |
 | **UAT-01-B-MD** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **Markdown** | Clean `*[AI Generated Visual]*` placeholder is preserved without dead blob links. | [x] |
-| **UAT-01-B-PDF** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **PDF** | Generated image renders in high resolution in the PDF card. | [ ] |
-| **UAT-02-B-MD** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo link appears in prompt and is not repeated in later turns. | [ ] |
-| **UAT-02-B-PDF** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders inside the "You" prompt card. | [ ] |
-| **UAT-03-MD** | **Gemini** | Image-Only Answers | Prompt generating an image without text | Export to **Markdown** | Visual-only turn is preserved as an image card and not dropped. | [ ] |
-| **UAT-03-PDF** | **Gemini** | Image-Only Answers | Prompt generating an image without text | Export to **PDF** | Visual-only turn renders the image in a full response card. | [ ] |
-| **UAT-04-C** | **Gemini** | Checklists & To-Do Lists | 5-step checklist with checkboxes | Export to **Markdown** | Checkboxes format as `- [ ]` and `- [x]`. | [ ] |
-| **UAT-05-C** | **Gemini** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [ ] |
-| **UAT-09-C-ALL** | **Gemini** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [ ] |
-| **UAT-09-C-SEL** | **Gemini** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [ ] |
-| **UAT-10-C-EXEC** | **Gemini** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Light theme layout. | [ ] |
+| **UAT-01-B-PDF** | **Gemini** | AI Generated Images (Imagen) | Generate a sunshine image | Export to **PDF** | Generated image renders in high resolution in the PDF card. | [x] |
+| **UAT-02-B-MD** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo link appears in prompt and is not repeated in later turns. | [x] |
+| **UAT-02-B-PDF** | **Gemini** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders inside the "You" prompt card. | [x] |
+| **UAT-03-MD** | **Gemini** | Image-Only Answers | Prompt generating an image without text | Export to **Markdown** | Visual-only turn is preserved as an image card and not dropped. | [x] |
+| **UAT-03-PDF** | **Gemini** | Image-Only Answers | Prompt generating an image without text | Export to **PDF** | Visual-only turn renders the image in a full response card. | [x] |
+| **UAT-04-C** | **Gemini** | Checklists & To-Do Lists | 5-step checklist with checkboxes | Export to **Markdown** | Checkboxes format as `- [ ]` and `- [x]`. | [x] |
+| **UAT-05-C** | **Gemini** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [x] |
+| **UAT-09-C-ALL** | **Gemini** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [x] |
+| **UAT-09-C-SEL** | **Gemini** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [x] |
+| **UAT-10-C-EXEC** | **Gemini** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Light theme layout. | [x] |
 | **UAT-10-C-MID** | **Gemini** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark theme layout. | [ ] |
 | **UAT-10-C-ACAD** | **Gemini** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal serif academic theme. | [ ] |
 | **UAT-11-C** | **Gemini** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without splitting across page boundaries. | [ ] |

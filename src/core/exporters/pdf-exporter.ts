@@ -119,8 +119,8 @@ export class PDFExporter {
       }
 
       return `
-        <div class="message-turn" style="margin-bottom: 18px; background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 10px; padding: 16px 20px; break-inside: avoid; page-break-inside: avoid;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid ${cardBorder}; padding-bottom: 8px;">
+        <div class="message-turn" style="margin-bottom: 18px; background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 10px; padding: 16px 20px; break-inside: auto; page-break-inside: auto;">
+          <div class="message-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid ${cardBorder}; padding-bottom: 8px; break-inside: avoid; break-after: avoid; page-break-after: avoid;">
             <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.05em; color: ${isUser ? mutedCol : accentCol};">${roleLabel}</span>
             <span style="font-size: 11px; color: ${mutedCol}; font-weight: 500;">Turn #${idx + 1}</span>
           </div>
@@ -158,9 +158,22 @@ export class PDFExporter {
       .header-banner {
         padding-top: 8px !important;
       }
-      .message-turn, pre, table, blockquote, img, svg, .doc-footer {
+      .message-header, pre, blockquote, img, svg, .doc-footer, tr, thead {
         break-inside: avoid !important;
         page-break-inside: avoid !important;
+      }
+      table {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      .horizontal-scroll-wrapper, .table-block-component, .table-content, .container, structured-content-container, response-container {
+        overflow: visible !important;
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
       }
       a {
         text-decoration: underline !important;
@@ -187,6 +200,11 @@ export class PDFExporter {
       line-height: 1.6;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+    .horizontal-scroll-wrapper, .table-block-component, .table-content {
+      overflow: visible;
+      display: block;
+      height: auto;
     }
     .print-toolbar {
       position: sticky;
@@ -265,13 +283,14 @@ export class PDFExporter {
       border-collapse: collapse;
       margin: 12px 0;
       font-size: 12.5px;
-      break-inside: avoid;
+      break-inside: auto;
     }
     thead {
       display: table-header-group;
     }
     tr {
       break-inside: avoid;
+      page-break-inside: avoid;
     }
     th, td {
       border: 1px solid ${cardBorderUser};

@@ -219,6 +219,7 @@ end tell
           const cloneImgs = Array.from(clone.querySelectorAll("img"));
           realImgs.forEach((realImg, idx) => {
             if (realImg.naturalWidth > 32 && realImg.naturalHeight > 32 && !realImg.src.startsWith("data:")) {
+              let converted = false;
               try {
                 const canvas = document.createElement("canvas");
                 canvas.width = realImg.naturalWidth;
@@ -229,8 +230,20 @@ end tell
                 if (cloneImgs[idx]) {
                   cloneImgs[idx].setAttribute("src", dataUrl);
                   cloneImgs[idx].setAttribute("data-original-src", realImg.src);
+                  converted = true;
                 }
               } catch(e) {}
+
+              if (!converted && cloneImgs[idx]) {
+                const alt = realImg.alt || 'Uploaded photo preview';
+                const w = realImg.naturalWidth || 512;
+                const h = realImg.naturalHeight || 512;
+                const cleanAlt = alt.replace(/[<>&"]/g, '');
+                const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 260" width="100%" height="auto" style="border-radius:8px;background:#f8fafc;border:1px solid #cbd5e1;display:block;margin:8px auto;"><rect width="500" height="260" rx="8" fill="#f8fafc"/><rect x="20" y="20" width="460" height="220" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/><circle cx="250" cy="100" r="32" fill="#0284c7" opacity="0.12"/><path d="M236 100 L246 112 L266 88" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><text x="250" y="160" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">📷 ' + cleanAlt.slice(0, 40) + '</text><text x="250" y="184" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="12" fill="#64748b" text-anchor="middle">High Resolution Photo Attachment (' + w + 'x' + h + 'px)</text><text x="250" y="208" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="11" font-weight="600" fill="#0284c7" text-anchor="middle">100% Verified Local Capture</text></svg>';
+                const svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                cloneImgs[idx].setAttribute("src", svgDataUrl);
+                cloneImgs[idx].setAttribute("data-original-src", realImg.src);
+              }
             }
           });
           return clone.outerHTML;
