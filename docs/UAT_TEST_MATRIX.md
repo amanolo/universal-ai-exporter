@@ -22,7 +22,7 @@
 | **UAT-02-C-MD** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo is preserved cleanly; screen-reader clutter ("Claude responded:") is removed. | [x] |
 | **UAT-02-C-PDF** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders cleanly in the "You" prompt card. | [x] |
 | **UAT-04-B** | **Claude** | Checklists & To-Do Lists | 5-step checklist with checkboxes | Export to **Markdown** | Checkboxes format cleanly with no stray backslashes or broken symbols. | [x] |
-| **UAT-05-D** | **Claude** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [ ] |
+| **UAT-05-D** | **Claude** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [x] |
 | **UAT-06-B-MD** | **Claude** | Reasoning Traces (3.7 Sonnet) | Complex prompt with thinking enabled | Export to **Markdown** | Thought process appears in a collapsible reasoning callout box. | [ ] |
 | **UAT-06-B-PDF** | **Claude** | Reasoning Traces (3.7 Sonnet) | Complex prompt with thinking enabled | Export to **PDF** | Thought process renders in a distinct tinted callout block. | [ ] |
 | **UAT-07-MD** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **Markdown** | Generated code files and components are grouped in a dedicated `#### 📦 Claude Artifacts` section. | [ ] |
