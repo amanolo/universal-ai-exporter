@@ -45,9 +45,9 @@
 | **UAT-09-C-ALL** | **Gemini** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [x] |
 | **UAT-09-C-SEL** | **Gemini** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [x] |
 | **UAT-10-C-EXEC** | **Gemini** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Light theme layout. | [x] |
-| **UAT-10-C-MID** | **Gemini** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark theme layout. | [ ] |
-| **UAT-10-C-ACAD** | **Gemini** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal serif academic theme. | [ ] |
-| **UAT-11-C** | **Gemini** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without splitting across page boundaries. | [ ] |
+| **UAT-10-C-MID** | **Gemini** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark theme layout. | [x] |
+| **UAT-10-C-ACAD** | **Gemini** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal serif academic theme. | [x] |
+| **UAT-11-C** | **Gemini** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without splitting across page boundaries. | [x] |
 | | | | | | | |
 | **UAT-05-A** | **Perplexity** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [ ] |
 | **UAT-08-MD** | **Perplexity** | Web Citations & Sources | Research question with web sources | Export to **Markdown** | Reference numbers like `[1]` link to sources + comprehensive bibliography at bottom. | [ ] |
