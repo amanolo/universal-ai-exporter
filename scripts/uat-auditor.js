@@ -160,7 +160,7 @@ function getLiveHtml(uatId = '') {
 
   // Tier 1: Try AppleScript from active Google Chrome tab ONLY if it matches the platform under test
   try {
-    let matchesPlatform = true;
+    let matchesPlatform = false;
     if (expectedPlatform) {
       const urlScript = `
 tell application "Google Chrome"
