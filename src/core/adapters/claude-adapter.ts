@@ -129,13 +129,21 @@ export class ClaudeAdapter implements AIPlatformAdapter {
       liveVisualRoots.forEach(root => {
         // 1. Direct SVGs in live DOM
         root.querySelectorAll('svg').forEach((svgEl) => {
+          let p: Element | null = svgEl.parentElement;
+          while (p) {
+            if (p.tagName === 'PRE' || p.tagName === 'CODE') return;
+            p = p.parentElement;
+          }
+
           const width = parseInt(svgEl.getAttribute('width') || '100', 10);
           const height = parseInt(svgEl.getAttribute('height') || '100', 10);
           const isIcon = (width > 0 && width < 32) || (height > 0 && height < 32) || /avatar|icon|logo|favicon|emoji|button/i.test(svgEl.getAttribute('class') || '');
           const svgContent = svgEl.outerHTML;
           if (!isIcon && svgContent.length > 80 && !artifacts.some(a => a.content === svgContent)) {
+            const titleEl = svgEl.querySelector('title');
+            const svgTitle = titleEl?.textContent?.trim() || `Visual Graphic ${artifacts.length + 1}`;
             artifacts.push({
-              title: `Visual Graphic ${artifacts.length + 1}`,
+              title: svgTitle,
               type: 'svg',
               content: svgContent
             });
@@ -144,6 +152,8 @@ export class ClaudeAdapter implements AIPlatformAdapter {
 
         // 2. Sandboxed iframes hosting Claude visual widgets
         root.querySelectorAll('iframe').forEach(iframe => {
+          let extractedFromIframe = false;
+
           // Check srcdoc attribute
           const srcdoc = iframe.getAttribute('srcdoc') || '';
           if (srcdoc) {
@@ -154,6 +164,7 @@ export class ClaudeAdapter implements AIPlatformAdapter {
                 type: 'svg',
                 content: svgMatch[0]
               });
+              extractedFromIframe = true;
             }
           }
 
@@ -167,6 +178,7 @@ export class ClaudeAdapter implements AIPlatformAdapter {
                 if (dataUrl && dataUrl.startsWith('data:image') && !seenImages.has(dataUrl)) {
                   seenImages.add(dataUrl);
                   images.push(dataUrl);
+                  extractedFromIframe = true;
                 }
               }
               const ifrSvg = ifrDoc.querySelector('svg');
@@ -176,10 +188,60 @@ export class ClaudeAdapter implements AIPlatformAdapter {
                   type: 'svg',
                   content: ifrSvg.outerHTML
                 });
+                extractedFromIframe = true;
               }
             }
           } catch {
             // sandbox iframe restriction
+          }
+        });
+
+        // 3. Claude Tool Request/Response payloads containing vector SVG / widget_code
+        root.querySelectorAll('code, pre').forEach(codeEl => {
+          if (codeEl.tagName === 'PRE' && codeEl.querySelector('code')) return;
+
+          const rawText = codeEl.textContent || '';
+          const innerHtml = codeEl.innerHTML || '';
+          const hasWidgetCode = rawText.includes('widget_code') || innerHtml.includes('widget_code');
+          const hasSvg = rawText.includes('<svg') || innerHtml.includes('<svg') || codeEl.querySelector('svg') !== null;
+
+          if (hasWidgetCode || hasSvg) {
+            let svgContent = '';
+            let title = '';
+
+            try {
+              const parsed = JSON.parse(rawText);
+              if (parsed && typeof parsed.widget_code === 'string' && parsed.widget_code.trim()) {
+                svgContent = parsed.widget_code.trim();
+              }
+              if (parsed && parsed.title) {
+                title = parsed.title.replace(/_/g, ' ');
+              }
+            } catch {}
+
+            if (!svgContent) {
+              const innerSvg = codeEl.querySelector('svg');
+              if (innerSvg) {
+                svgContent = innerSvg.outerHTML;
+              } else {
+                const svgMatch = (rawText + '\n' + innerHtml).match(/<svg[\s\S]*?<\/svg>/i);
+                if (svgMatch) svgContent = svgMatch[0];
+              }
+            }
+
+            if (!title) {
+              const titleMatch = (rawText + '\n' + innerHtml).match(/"title"\s*:\s*"([^"]+)"/i);
+              if (titleMatch) title = titleMatch[1].replace(/_/g, ' ');
+            }
+
+            if (svgContent && !artifacts.some(a => a.content === svgContent)) {
+              const cleanTitle = title ? title.charAt(0).toUpperCase() + title.slice(1) : `Visual Graphic ${artifacts.length + 1}`;
+              artifacts.push({
+                title: cleanTitle,
+                type: 'svg',
+                content: svgContent
+              });
+            }
           }
         });
 
@@ -265,11 +327,37 @@ export class ClaudeAdapter implements AIPlatformAdapter {
         });
       });
 
-      // Remove any residual isolated V buttons or widget tool summaries from the clone
-      clone.querySelectorAll('button, div, span, summary, details, p').forEach(el => {
-        const t = (el.textContent || '').trim();
-        if (t === 'V' || t === 'v' || t.toLowerCase() === 'visualize' || t.toLowerCase() === 'show_widget' || t.toLowerCase() === 'visualize show_widget') {
-          if (!el.querySelector('p, svg, img, pre, table') || el.children.length === 0) {
+      // Remove tool call containers, buttons, and raw tool payload JSON from the clone while preserving conversation text
+      clone.querySelectorAll('[id*="mcp-app"], [id*="toolu_"], details, summary, button').forEach(el => {
+        el.remove();
+      });
+
+      clone.querySelectorAll('pre, code').forEach(el => {
+        const t = el.textContent || '';
+        if (
+          t.includes('loading_messages') ||
+          t.includes('widget_code') ||
+          t.includes('Content rendered and shown') ||
+          t.includes('This tool call rendered')
+        ) {
+          el.remove();
+        }
+      });
+
+      clone.querySelectorAll('div, span, p').forEach(el => {
+        const t = (el.textContent || '').trim().toLowerCase();
+        if (
+          t === 'v' ||
+          t === 'visualize' ||
+          t === 'show_widget' ||
+          t === 'visualize show_widget' ||
+          t === 'view request/response' ||
+          t === 'request' ||
+          t === 'response' ||
+          t.startsWith('content rendered and shown') ||
+          t.startsWith('[this tool call rendered')
+        ) {
+          if (!el.querySelector('p, table, pre, code, ul, ol') || el.children.length === 0) {
             el.remove();
           }
         }
@@ -277,12 +365,21 @@ export class ClaudeAdapter implements AIPlatformAdapter {
 
       const contentHtml = clone.innerHTML;
       let contentText = extractCleanText(clone);
-      // Clean isolated V / visualize / show_widget lines
+      // Clean isolated V / visualize / show_widget / request / response lines
       contentText = contentText
         .split('\n')
         .filter(l => {
           const trimmed = l.trim().toLowerCase();
-          return trimmed !== 'v' && trimmed !== 'visualize' && trimmed !== 'show_widget' && trimmed !== 'visualize show_widget';
+          return trimmed !== 'v' &&
+                 trimmed !== 'visualize' &&
+                 trimmed !== 'show_widget' &&
+                 trimmed !== 'visualize show_widget' &&
+                 trimmed !== 'request' &&
+                 trimmed !== 'response' &&
+                 !trimmed.includes('loading_messages') &&
+                 !trimmed.includes('widget_code') &&
+                 !trimmed.includes('content rendered and shown') &&
+                 !trimmed.includes('this tool call rendered');
         })
         .join('\n')
         .trim();

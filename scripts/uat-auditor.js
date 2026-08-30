@@ -154,21 +154,47 @@ function setupDomGlobals(dom) {
 
 import { execSync } from 'node:child_process';
 
-function getLiveHtml() {
-  // Tier 1: Try AppleScript from active Google Chrome tab (with high-res base64 image inlining)
+function getLiveHtml(uatId = '') {
+  const meta = (typeof UAT_REGISTRY !== 'undefined' ? UAT_REGISTRY[uatId] : null) || {};
+  const expectedPlatform = meta.platform || '';
+
+  // Tier 1: Try AppleScript from active Google Chrome tab ONLY if it matches the platform under test
   try {
-    // Phase 1: Scroll chat containers to top to ensure React virtual list mounts all turns
-    const scrollJs = `
-      (() => {
-        try {
-          const scrollContainers = Array.from(document.querySelectorAll("main, [class*='virtual'], [class*='scroll'], [class*='overflow'], [id*='chat']"));
-          scrollContainers.forEach(c => { try { c.scrollTop = 0; } catch(e) {} });
-          window.scrollTo(0, 0);
-        } catch(e) {}
-        return "ok";
-      })()
-    `;
-    const scrollAppleScript = `
+    let matchesPlatform = true;
+    if (expectedPlatform) {
+      const urlScript = `
+tell application "Google Chrome"
+  if (count of windows) > 0 then
+    return URL of active tab of front window
+  end if
+  return ""
+end tell
+`;
+      const activeUrl = execSync('osascript', { input: urlScript, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+      if (expectedPlatform === 'ChatGPT') matchesPlatform = activeUrl.includes('chatgpt.com') || activeUrl.includes('openai.com');
+      else if (expectedPlatform === 'Claude') matchesPlatform = activeUrl.includes('claude.ai');
+      else if (expectedPlatform === 'Gemini') matchesPlatform = activeUrl.includes('gemini.google.com');
+      else if (expectedPlatform === 'Perplexity') matchesPlatform = activeUrl.includes('perplexity.ai');
+      else if (expectedPlatform === 'DeepSeek') matchesPlatform = activeUrl.includes('deepseek.com');
+    }
+
+    if (matchesPlatform) {
+      // Phase 1: Scroll chat containers to top and expand tool buttons to mount all turns & tool code
+      const scrollJs = `
+        (() => {
+          try {
+            const scrollContainers = Array.from(document.querySelectorAll("main, [class*='virtual'], [class*='scroll'], [class*='overflow'], [id*='chat']"));
+            scrollContainers.forEach(c => { try { c.scrollTop = 0; } catch(e) {} });
+            window.scrollTo(0, 0);
+
+            // Auto-expand any tool request/response buttons to reveal vector SVG / widget code
+            const toolButtons = Array.from(document.querySelectorAll("button[aria-label='View request/response'], button[aria-label*='request/response']"));
+            toolButtons.forEach(b => { try { b.click(); } catch(e) {} });
+          } catch(e) {}
+          return "ok";
+        })()
+      `;
+      const scrollAppleScript = `
 tell application "Google Chrome"
   set jsCode to ${JSON.stringify(scrollJs)}
   tell front window's active tab
@@ -176,38 +202,38 @@ tell application "Google Chrome"
   end tell
 end tell
 `;
-    execSync('osascript', { input: scrollAppleScript, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+      execSync('osascript', { input: scrollAppleScript, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
 
-    // Wait 150ms synchronously for React virtual DOM to mount top nodes
-    execSync('sleep 0.15');
+      // Wait 150ms synchronously for React virtual DOM to mount top nodes
+      execSync('sleep 0.15');
 
-    // Phase 2: Capture the full mounted DOM and inline high-res images
-    const js = `
-      (() => {
-        const clone = document.documentElement.cloneNode(true);
-        const realImgs = Array.from(document.querySelectorAll("img"));
-        const cloneImgs = Array.from(clone.querySelectorAll("img"));
-        realImgs.forEach((realImg, idx) => {
-          if (realImg.naturalWidth > 32 && realImg.naturalHeight > 32 && !realImg.src.startsWith("data:")) {
-            try {
-              const canvas = document.createElement("canvas");
-              canvas.width = realImg.naturalWidth;
-              canvas.height = realImg.naturalHeight;
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(realImg, 0, 0);
-              const dataUrl = canvas.toDataURL("image/jpeg", 0.90);
-              if (cloneImgs[idx]) {
-                cloneImgs[idx].setAttribute("src", dataUrl);
-                cloneImgs[idx].setAttribute("data-original-src", realImg.src);
-              }
-            } catch(e) {}
-          }
-        });
-        return clone.outerHTML;
-      })()
-    `;
+      // Phase 2: Capture the full mounted DOM and inline high-res images
+      const js = `
+        (() => {
+          const clone = document.documentElement.cloneNode(true);
+          const realImgs = Array.from(document.querySelectorAll("img"));
+          const cloneImgs = Array.from(clone.querySelectorAll("img"));
+          realImgs.forEach((realImg, idx) => {
+            if (realImg.naturalWidth > 32 && realImg.naturalHeight > 32 && !realImg.src.startsWith("data:")) {
+              try {
+                const canvas = document.createElement("canvas");
+                canvas.width = realImg.naturalWidth;
+                canvas.height = realImg.naturalHeight;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(realImg, 0, 0);
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.90);
+                if (cloneImgs[idx]) {
+                  cloneImgs[idx].setAttribute("src", dataUrl);
+                  cloneImgs[idx].setAttribute("data-original-src", realImg.src);
+                }
+              } catch(e) {}
+            }
+          });
+          return clone.outerHTML;
+        })()
+      `;
 
-    const appleScript = `
+      const appleScript = `
 tell application "Google Chrome"
   set jsCode to ${JSON.stringify(js)}
   tell front window's active tab
@@ -215,21 +241,31 @@ tell application "Google Chrome"
   end tell
 end tell
 `;
-    const chromeHtml = execSync('osascript', {
-      input: appleScript,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      maxBuffer: 100 * 1024 * 1024
-    });
-    if (chromeHtml && chromeHtml.length > 200 && (chromeHtml.includes('<html') || chromeHtml.includes('<body') || chromeHtml.includes('<div'))) {
-      console.log(`${colors.green}⚡ Auto-captured HTML directly from active Google Chrome tab (images embedded)!${colors.reset}`);
-      return chromeHtml;
+      const chromeHtml = execSync('osascript', {
+        input: appleScript,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+        maxBuffer: 100 * 1024 * 1024
+      });
+      if (chromeHtml && chromeHtml.length > 200 && (chromeHtml.includes('<html') || chromeHtml.includes('<body') || chromeHtml.includes('<div'))) {
+        console.log(`${colors.green}⚡ Auto-captured HTML directly from active Google Chrome tab (images embedded)!${colors.reset}`);
+        return chromeHtml;
+      }
     }
   } catch (e) {
     // Apple Events JS not enabled or Chrome not active
   }
 
-  // Tier 2: Try macOS Clipboard (pbpaste)
+  // Tier 2: Try Archive for this specific UAT case if active tab is on a different platform
+  if (uatId) {
+    const archivePath = path.join(ARCHIVE_DIR, uatId, 'page.html');
+    if (fs.existsSync(archivePath)) {
+      console.log(`${colors.blue}📁 Loaded HTML from Archive: ${archivePath}${colors.reset}`);
+      return fs.readFileSync(archivePath, 'utf8');
+    }
+  }
+
+  // Tier 3: Try macOS Clipboard (pbpaste)
   try {
     const clipboard = execSync('pbpaste', { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
     if (clipboard && clipboard.length > 200 && (clipboard.includes('<html') || clipboard.includes('<body') || clipboard.includes('<main') || clipboard.includes('conversation-turn') || clipboard.includes('data-message'))) {
@@ -238,7 +274,7 @@ end tell
     }
   } catch (e) {}
 
-  // Tier 3: Try UAIE_UAT folder files
+  // Tier 4: Try UAIE_UAT folder files
   const pagePath = path.join(UAT_DIR, 'page.html');
   if (fs.existsSync(pagePath)) {
     console.log(`${colors.blue}📁 Loaded HTML from: ${pagePath}${colors.reset}`);
@@ -266,8 +302,8 @@ export async function auditUAT(uatId, htmlSource = null) {
 
   console.log(`\n${colors.cyan}${colors.bold}🔍 Running UAT Auditor for [${uatId}] (${meta.platform} — ${meta.format})${colors.reset}`);
 
-  // 1. Locate HTML (Source -> Chrome Tab -> Clipboard -> File)
-  let htmlContent = htmlSource || getLiveHtml();
+  // 1. Locate HTML (Source -> Chrome Tab (if platform matches) -> Archive -> Clipboard -> File)
+  let htmlContent = htmlSource || getLiveHtml(uatId);
   if (!htmlContent) {
     console.error(`${colors.red}❌ No HTML found!${colors.reset}`);
     console.error(`👉 Quickest method in DevTools Console:`);
@@ -386,29 +422,54 @@ function evaluateRules(uatId, conv, content, meta) {
     });
 
     if (meta.format === 'MD') {
-      const hasMdImg = content.includes('![') && (content.includes('http') || content.includes('backend-api/estuary') || content.includes('lh3.googleusercontent'));
-      checks.push({
-        title: 'Clean Markdown Image Link Format',
-        pass: hasMdImg,
-        detail: hasMdImg ? 'Markdown contains clean ![alt](url) image tag' : 'Missing markdown image tag'
-      });
+      const isClaude = meta.platform === 'Claude' || uatId.includes('-C-');
+      if (isClaude) {
+        const cleanNoCodeClutter = !content.includes('```svg') && !content.includes('<svg') && !content.includes('data:image/svg+xml');
+        const hasPlaceholder = content.includes('*[AI Generated Graphic');
+        checks.push({
+          title: 'Clean AI Generated Graphic Placeholder in Markdown',
+          pass: cleanNoCodeClutter && hasPlaceholder,
+          detail: (cleanNoCodeClutter && hasPlaceholder) ? 'Rendered clean *[AI Generated Graphic: ...]* placeholder with 0 code clutter' : 'Missing placeholder or found code clutter'
+        });
+      } else {
+        const hasMdImgLink = content.includes('![') && (content.includes('http') || content.includes('backend-api/estuary') || content.includes('lh3.googleusercontent'));
+        checks.push({
+          title: 'Clean Markdown Image Link Format',
+          pass: Boolean(hasMdImgLink),
+          detail: hasMdImgLink ? 'Markdown contains clean ![alt](url) image tag' : 'Missing markdown image link'
+        });
+      }
     } else if (meta.format === 'PDF') {
+      const isClaude = meta.platform === 'Claude' || uatId.includes('-C-');
       const imgCount = (content.match(/<img\b/gi) || []).length;
-      const hasPdfImg = imgCount >= 1;
-      const noDuplicateImages = imgCount <= (aiMsgWithImg?.images?.length || 1);
+      const hasPdfVisual = isClaude
+        ? (content.includes('ARTIFACT:') || content.includes('Graphic:') || content.includes('<svg') || content.includes('<iframe') || imgCount >= 1)
+        : (imgCount >= 1 && imgCount <= (aiMsgWithImg?.images?.length || 1));
       checks.push({
-        title: 'PDF Responsive Image Element Rendered (0 Duplicates)',
-        pass: hasPdfImg && noDuplicateImages,
-        detail: hasPdfImg && noDuplicateImages ? `Rendered exactly ${imgCount} image element (no duplicates)` : `Found ${imgCount} images (duplicate rendering)`
+        title: isClaude ? 'PDF Artifact / Visual Component Rendered' : 'PDF Responsive Image Element Rendered (0 Duplicates)',
+        pass: Boolean(hasPdfVisual),
+        detail: hasPdfVisual ? (isClaude ? 'Visual graphic/widget rendered in PDF layout card' : `Rendered exactly ${imgCount} image element (no duplicates)`) : 'Missing visual element in PDF output'
       });
     }
 
     // Check for 0 noise
-    const noBtnNoise = !content.includes('ChatGPT said:') && !content.includes('visualize show_widget') && !content.includes('Download\n');
+    const noBtnNoise = !content.includes('ChatGPT said:') &&
+                       !content.includes('visualize show_widget') &&
+                       !content.includes('Download\n') &&
+                       !content.includes('Request\n') &&
+                       !content.includes('Response\n');
     checks.push({
       title: 'UI Button & Header Noise Stripped',
       pass: noBtnNoise,
       detail: noBtnNoise ? 'Zero UI clutter / buttons detected' : 'Found stray UI button or header noise'
+    });
+
+    // Check that assistant conversational text is preserved
+    const hasResponseText = Boolean(aiMsgWithImg && aiMsgWithImg.contentText && aiMsgWithImg.contentText.trim().length > 0);
+    checks.push({
+      title: 'Conversational Response Text Preserved',
+      pass: hasResponseText,
+      detail: hasResponseText ? `Captured response text: "${aiMsgWithImg.contentText.slice(0, 45)}..."` : 'Conversational text was missing'
     });
   }
 

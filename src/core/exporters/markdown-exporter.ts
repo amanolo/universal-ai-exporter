@@ -241,10 +241,20 @@ export class MarkdownExporter {
     parts.push(healCodeFences(markdownContent.trim()));
     parts.push('');
 
-    // 3. Claude Artifacts
-    if (msg.artifacts && msg.artifacts.length > 0 && (options.includeArtifacts !== false)) {
+    // 3. AI Generated Visual Graphics Placeholder in Markdown (e.g. Claude visual widgets)
+    const svgArtifacts = msg.artifacts ? msg.artifacts.filter(art => art.type === 'svg') : [];
+    if (svgArtifacts.length > 0 && options.includeImages !== false) {
+      svgArtifacts.forEach(art => {
+        const hasTitle = art.title && !art.title.startsWith('Visual Graphic');
+        parts.push(`*[AI Generated Graphic${hasTitle ? `: ${art.title}` : ''}]*\n`);
+      });
+    }
+
+    // 4. Claude Code Artifacts (Code, React, Markdown files; visual SVGs are preserved for PDF rendering)
+    const codeArtifacts = msg.artifacts ? msg.artifacts.filter(art => art.type !== 'svg') : [];
+    if (codeArtifacts.length > 0 && (options.includeArtifacts !== false)) {
       parts.push('#### 📦 **Claude Artifacts**\n');
-      msg.artifacts.forEach((art, idx) => {
+      codeArtifacts.forEach((art, idx) => {
         parts.push(`##### Artifact ${idx + 1}: *${art.title}* (${art.type})`);
         parts.push(`\`\`\`${art.language || art.type}\n${art.content}\n\`\`\`\n`);
       });

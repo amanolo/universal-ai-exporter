@@ -614,6 +614,49 @@ test('Adapter 13: Claude Sandboxed Iframe Visual Widget (Sunshine SVG in Iframe 
   assert.ok(asstMsg.artifacts![0].content.includes('<svg'));
 });
 
+test('Adapter 14: Claude Tool Payload SVG extraction (widget_code vector SVG in tool call)', async () => {
+  const claudeToolPayloadHtml = `
+    <html>
+    <head><title>Create a sunshine pic - Claude</title></head>
+    <body>
+      <main>
+        <div data-testid="user-message" class="font-user-message">
+          <p>create a sunshine pic plz</p>
+        </div>
+
+        <div class="font-claude-message">
+          <button aria-label="View request/response">View request/response</button>
+          <pre><code class="language-javascript">{\n  "loading_messages": ["Painting the sky"],\n  "title": "sunshine_illustration",\n  "widget_code": "<svg width='100%' viewBox='0 0 680 480' xmlns='http://www.w3.org/2000/svg'><rect width='680' height='480' fill='#4fb8ea'/><circle cx='340' cy='160' r='90' fill='#ffd23f'/></svg>"\n}</code></pre>
+          <pre><code class="language-json">Content rendered and shown to the user.</code></pre>
+          <p>Here's a bright sunshine scene for you ☀️</p>
+        </div>
+      </main>
+    </body>
+    </html>
+  `;
+  const dom = new JSDOM(claudeToolPayloadHtml, { url: 'https://claude.ai/chat/tool-sunshine' });
+  setupDomGlobals(dom);
+
+  const adapter = new ClaudeAdapter();
+  const conv = await adapter.extractConversation();
+
+  assert.equal(conv.messages.length, 2);
+
+  const asstMsg = conv.messages[1];
+  assert.equal(asstMsg.role, 'assistant');
+  assert.equal(asstMsg.contentText.includes('widget_code'), false, 'Must strip raw tool payload JSON from text');
+  assert.equal(asstMsg.contentText.includes('Content rendered'), false, 'Must strip tool response text');
+  assert.ok(asstMsg.contentText.includes("Here's a bright sunshine scene for you"));
+
+  // Check SVG extracted from widget_code payload
+  assert.ok(asstMsg.artifacts && asstMsg.artifacts.length >= 1, 'Must extract SVG from widget_code');
+  assert.equal(asstMsg.artifacts![0].type, 'svg');
+  assert.equal(asstMsg.artifacts![0].title, 'Sunshine illustration');
+  assert.ok(asstMsg.artifacts![0].content.includes('<svg'));
+  assert.ok(asstMsg.artifacts![0].content.includes('fill="#ffd23f"'));
+});
+
+
 
 
 

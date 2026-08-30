@@ -17,7 +17,7 @@
 | **UAT-10-A-ACAD** | **ChatGPT** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal book-style serif typography and clean dividers. | [x] |
 | **UAT-11-A** | **ChatGPT** | Multi-Page PDF Layout | Long conversation (10+ turns) | Export to **PDF** | Long messages, code boxes, and tables stay intact without getting sliced across page edges. | [x] |
 | | | | | | | |
-| **UAT-01-C-MD** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **Markdown** | Captures graphic/illustration without showing tool command text (`visualize show_widget`). | [ ] |
+| **UAT-01-C-MD** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **Markdown** | Claude response text is preserved with clean visual placeholder (`*[AI Generated Graphic: Sunshine illustration]*`) and zero tool noise. | [x] |
 | **UAT-01-C-PDF** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **PDF** | Visual graphic renders in the PDF card without internal tool clutter. | [ ] |
 | **UAT-02-C-MD** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo is preserved cleanly; screen-reader clutter ("Claude responded:") is removed. | [ ] |
 | **UAT-02-C-PDF** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders cleanly in the "You" prompt card. | [ ] |
