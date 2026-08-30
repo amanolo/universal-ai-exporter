@@ -389,6 +389,157 @@ export class PDFExporter {
   }
 
   /**
+   * Generates clean rich-text HTML specifically designed for clipboard pasting into
+   * Google Docs, Microsoft Word, Apple Pages, and Outlook (zero background highlighting,
+   * native border-collapse tables, styled code blocks, and crisp typography).
+   */
+  public static generateRichClipboardHtml(
+    conversation: ConversationData,
+    options: ExportOptions = { format: 'pdf' }
+  ): string {
+    const formattedDate = new Date(conversation.exportedAt || Date.now()).toLocaleDateString();
+
+    const messagesHtml = conversation.messages.map((msg, idx) => {
+      const isUser = msg.role === 'user';
+      const roleLabel = isUser ? '👤 You' : (msg.author ? `🤖 ${escapeHtml(msg.author)}` : '🤖 Assistant');
+
+      // Reasoning
+      let reasoningBlock = '';
+      if (msg.reasoning && options.includeReasoning !== false) {
+        reasoningBlock = `
+          <blockquote style="margin: 10px 0 14px 0; padding: 10px 14px; border-left: 3px solid #94a3b8; background-color: #f8fafc; color: #475569; font-size: 10pt; font-family: Arial, Helvetica, sans-serif;">
+            <div style="font-weight: bold; margin-bottom: 4px; color: #334155;">🧠 Reasoning Process:</div>
+            <div>${escapeHtml(msg.reasoning).replace(/\n/g, '<br>')}</div>
+          </blockquote>
+        `;
+      }
+
+      // Process Body HTML
+      let bodyHtml = msg.contentHtml || escapeHtml(msg.contentText).replace(/\n/g, '<br>');
+
+      // Code blocks
+      if (msg.codeBlocks && msg.codeBlocks.length > 0 && !bodyHtml.includes('<pre')) {
+        bodyHtml += msg.codeBlocks.map(b => `
+          <pre style="background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; overflow-x: auto; margin: 10px 0;"><code>${escapeHtml(b.code)}</code></pre>
+        `).join('');
+      }
+
+      // Artifacts
+      let artifactsBlock = '';
+      if (msg.artifacts && msg.artifacts.length > 0 && options.includeArtifacts !== false) {
+        artifactsBlock = msg.artifacts.map(a => `
+          <div style="margin: 12px 0; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <div style="font-weight: bold; margin-bottom: 6px; font-size: 10pt;">📦 Artifact: ${escapeHtml(a.title || a.id || 'Untitled')}</div>
+            <pre style="background-color: #f1f5f9; padding: 8px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; font-size: 9pt;"><code>${escapeHtml(a.content)}</code></pre>
+          </div>
+        `).join('');
+      }
+
+      // Citations
+      let citationsBlock = '';
+      if (msg.citations && msg.citations.length > 0 && options.includeCitations !== false) {
+        citationsBlock = `
+          <div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 9.5pt; font-family: Arial, Helvetica, sans-serif;">
+            <div style="font-weight: bold; color: #475569; margin-bottom: 4px;">📚 Citations & Sources:</div>
+            <ol style="margin: 0; padding-left: 18px;">
+              ${msg.citations.map(c => `<li><a href="${c.url}" target="_blank" style="color: #0284c7; text-decoration: underline;">${escapeHtml(c.title)}</a> (${escapeHtml(c.siteName || c.url)})</li>`).join('')}
+            </ol>
+          </div>
+        `;
+      }
+
+      return `
+        <div style="margin-bottom: 24px; font-family: Arial, Helvetica, sans-serif;">
+          <h3 style="margin-top: 18px; margin-bottom: 8px; font-size: 12.5pt; color: ${isUser ? '#0369a1' : '#0f172a'}; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">
+            ${roleLabel} <span style="font-size: 9pt; color: #94a3b8; font-weight: normal;">(Turn #${idx + 1})</span>
+          </h3>
+          ${reasoningBlock}
+          <div style="font-size: 10.5pt; line-height: 1.6; color: #0f172a;">
+            ${bodyHtml}
+          </div>
+          ${artifactsBlock}
+          ${citationsBlock}
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0 0 0;" />
+        </div>
+      `;
+    }).join('\n');
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #0f172a;
+      background-color: transparent;
+      line-height: 1.6;
+      font-size: 10.5pt;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      color: #0f172a;
+    }
+    pre {
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 9.5pt;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 9.5pt;
+    }
+    a {
+      color: #0284c7;
+      text-decoration: underline;
+    }
+    blockquote {
+      border-left: 3px solid #94a3b8;
+      background-color: #f8fafc;
+      padding: 8px 12px;
+      margin: 10px 0;
+      color: #475569;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 20px; font-family: Arial, Helvetica, sans-serif;">
+    <h1 style="font-size: 18pt; margin-bottom: 4px; color: #0f172a; font-family: Arial, Helvetica, sans-serif;">${escapeHtml(conversation.title || 'AI Conversation')}</h1>
+    <div style="font-size: 9pt; color: #64748b;">
+      <strong>${(conversation.platform || 'AI').toUpperCase()}</strong> &bull; Model: <strong>${escapeHtml(conversation.model || 'Default')}</strong> &bull; Exported: ${formattedDate}
+    </div>
+  </div>
+  ${messagesHtml}
+  <div style="margin-top: 20px; font-size: 9pt; color: #94a3b8; text-align: center;">
+    Exported with Universal AI Exporter &bull; 100% Local & Private
+  </div>
+</body>
+</html>`;
+  }
+
+  /**
    * Triggers the native browser print/save-to-pdf dialog by opening a clean print tab
    */
   public static async printDocument(

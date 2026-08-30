@@ -903,9 +903,8 @@ function setupExportButtons(): void {
         const convForExport = JSON.parse(JSON.stringify(conv));
         const finalConv = await enrichConversationWithScreenshots(convForExport);
 
-        const htmlContent = PDFExporter.generateDocumentHtml(finalConv, selectedTheme, {
+        const htmlContent = PDFExporter.generateRichClipboardHtml(finalConv, {
           format: 'pdf',
-          pdfTheme: selectedTheme,
           includeReasoning,
           includeCitations,
           includeArtifacts: true,
