@@ -279,9 +279,18 @@ export class ClaudeAdapter implements AIPlatformAdapter {
         }
       }
 
+      // Restore clean original URLs on cloned images for Markdown export
+      clone.querySelectorAll('img').forEach(img => {
+        const orig = img.getAttribute('data-original-src');
+        if (orig) {
+          img.setAttribute('src', orig);
+        }
+      });
+
       liveVisualRoots.forEach(root => {
         root.querySelectorAll('img, [data-testid*="attachment"] img, [class*="attachment"] img, [class*="thumbnail"] img').forEach(img => {
-          let src = img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
+          const originalSrc = img.getAttribute('data-original-src');
+          let src = originalSrc || img.getAttribute('src') || img.getAttribute('data-src') || (img as HTMLImageElement).src;
           if (src) {
             const width = parseInt(img.getAttribute('width') || '100', 10);
             const height = parseInt(img.getAttribute('height') || '100', 10);

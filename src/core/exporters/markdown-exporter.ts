@@ -199,8 +199,8 @@ export class MarkdownExporter {
         });
 
         msg.images.forEach(imgUrl => {
-          // Only append valid external public HTTP/HTTPS URLs (ignore local blobs, relative APIs, or base64 streams in raw markdown)
-          const isInternalLink = imgUrl.startsWith('blob:') || imgUrl.startsWith('/api/') || imgUrl.startsWith('data:') || (imgUrl.startsWith('/') && !imgUrl.startsWith('//')) || imgUrl.includes('claude.ai/api/');
+          // Only append valid external HTTP/HTTPS URLs (ignore local blobs, relative APIs, or base64 streams in raw markdown)
+          const isInternalLink = imgUrl.startsWith('blob:') || imgUrl.startsWith('/api/') || imgUrl.startsWith('data:') || (imgUrl.startsWith('/') && !imgUrl.startsWith('//'));
           if (!isInternalLink && (imgUrl.startsWith('http://') || imgUrl.startsWith('https://'))) {
             const isAlreadyRendered = Array.from(seenUrls).some(u =>
               u === imgUrl ||
@@ -209,7 +209,7 @@ export class MarkdownExporter {
             );
             if (!isAlreadyRendered) {
               seenUrls.add(imgUrl);
-              markdownContent += `\n\n![Image](${imgUrl})\n\n`;
+              markdownContent += `\n\n![User Attachment](${imgUrl})\n\n`;
             }
           }
         });

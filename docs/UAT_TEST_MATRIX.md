@@ -19,7 +19,7 @@
 | | | | | | | |
 | **UAT-01-C-MD** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **Markdown** | Claude response text is preserved with clean visual placeholder (`*[AI Generated Graphic: Sunshine illustration]*`) and zero tool noise. | [x] |
 | **UAT-01-C-PDF** | **Claude** | AI Generated Visuals (Widgets) | Create a sunshine pic plz | Export to **PDF** | Visual graphic renders in the PDF card without internal tool clutter. | [x] |
-| **UAT-02-C-MD** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo is preserved cleanly; screen-reader clutter ("Claude responded:") is removed. | [ ] |
+| **UAT-02-C-MD** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **Markdown** | Uploaded photo is preserved cleanly; screen-reader clutter ("Claude responded:") is removed. | [x] |
 | **UAT-02-C-PDF** | **Claude** | User Image Uploads | Upload photo: What is in this picture? | Export to **PDF** | Uploaded photo renders cleanly in the "You" prompt card. | [ ] |
 | **UAT-04-B** | **Claude** | Checklists & To-Do Lists | 5-step checklist with checkboxes | Export to **Markdown** | Checkboxes format cleanly with no stray backslashes or broken symbols. | [ ] |
 | **UAT-05-D** | **Claude** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [ ] |
