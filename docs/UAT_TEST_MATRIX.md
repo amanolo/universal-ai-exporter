@@ -25,7 +25,7 @@
 | **UAT-05-D** | **Claude** | Links with Underscores | Wikipedia link with underscores (e.g. *Deep_learning*) | Export to **Markdown** | Website links remain clickable with no broken characters. | [x] |
 | **UAT-06-B-MD** | **Claude** | Reasoning Traces (3.7 Sonnet) | Complex prompt with thinking enabled | Export to **Markdown** | Thought process appears in a collapsible reasoning callout box. | [x] |
 | **UAT-06-B-PDF** | **Claude** | Reasoning Traces (3.7 Sonnet) | Complex prompt with thinking enabled | Export to **PDF** | Thought process renders in a distinct tinted callout block. | [ ] |
-| **UAT-07-MD** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **Markdown** | Generated code files and components are grouped in a dedicated `#### 📦 Claude Artifacts` section. | [ ] |
+| **UAT-07-MD** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **Markdown** | Generated code files and components are grouped in a dedicated `#### 📦 Claude Artifacts` section. | [x] |
 | **UAT-07-PDF** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **PDF** | Artifacts are rendered in dedicated framed code cards. | [ ] |
 | **UAT-09-B-ALL** | **Claude** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all detected tables into a single formatted CSV. | [ ] |
 | **UAT-09-B-SEL** | **Claude** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports chosen table as a clean single CSV file. | [ ] |

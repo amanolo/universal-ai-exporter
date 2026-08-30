@@ -98,15 +98,39 @@ export class ClaudeAdapter implements AIPlatformAdapter {
       artifactElements.forEach(artEl => {
         const artTitle = artEl.querySelector('div, span, p')?.textContent?.trim() || 'Claude Artifact';
         const codePre = artEl.querySelector('pre, code');
-        const content = codePre?.textContent?.trim() || artEl.textContent?.trim() || '';
+        let content = codePre?.textContent?.trim() || '';
+
+        // If content is empty or just the button label, extract from mounted artifact code viewer lines
+        if (!content || content.length < 50) {
+          const doc = turnEl.ownerDocument || (typeof document !== 'undefined' ? document : null);
+          const lineEls = Array.from(doc?.querySelectorAll('[class*="group/line"]') || []);
+          if (lineEls.length > 0) {
+            const rawCode = lineEls.map(el => {
+              const codeEl = el.querySelector('code');
+              if (codeEl) {
+                return (codeEl.textContent || '').replace(/\r?\n$/, '') + '\n';
+              }
+              const cloneLine = el.cloneNode(true) as Element;
+              cloneLine.querySelectorAll('button, [class*="line-number"], [class*="gutter"]').forEach(b => b.remove());
+              return (cloneLine.textContent || '').replace(/^\s*\d+\s*/, '') + '\n';
+            }).join('');
+            if (rawCode.trim().length > 0) {
+              content = rawCode.trim();
+            }
+          }
+        }
+
+        if (!content) {
+          content = artEl.textContent?.trim() || '';
+        }
 
         let type: ClaudeArtifact['type'] = 'code';
         if (/svg/i.test(artTitle) || /<svg/i.test(content)) type = 'svg';
         else if (/html/i.test(artTitle) || /<!doctype html>/i.test(content)) type = 'html';
-        else if (/jsx|tsx|react/i.test(artTitle)) type = 'react';
+        else if (/jsx|tsx|react/i.test(artTitle) || /import\s+React/i.test(content) || /from\s+["']react["']/i.test(content)) type = 'react';
         else if (/md|markdown/i.test(artTitle)) type = 'markdown';
 
-        if (content) {
+        if (content && !artifacts.some(a => a.title === artTitle || (a.content === content && a.content.length > 20))) {
           artifacts.push({
             title: artTitle,
             type,
