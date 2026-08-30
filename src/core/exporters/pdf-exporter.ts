@@ -142,7 +142,7 @@ export class PDFExporter {
   <title>${escapeHtml(conversation.title || 'AI Conversation Export')}</title>
   <style>
     @page {
-      margin: 15mm 18mm;
+      margin: 0;
       size: A4 portrait;
     }
     @media print {
@@ -154,9 +154,12 @@ export class PDFExporter {
         color: ${textCol} !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        margin: 0 !important;
+        padding: 14mm 16mm !important;
+        max-width: 100% !important;
       }
       .header-banner {
-        padding-top: 8px !important;
+        padding-top: 0 !important;
       }
       .message-header, pre, blockquote, img, svg, .doc-footer, tr, thead {
         break-inside: avoid !important;

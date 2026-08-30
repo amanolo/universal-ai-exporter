@@ -143,21 +143,22 @@ export class ChatGPTAdapter implements AIPlatformAdapter {
       }
     });
 
-    // Detect model if present
-    const modelBadge = document.querySelector('button[data-testid="model-switcher-dropdown-button"], [aria-label*="Model"], div[class*="model"]');
-    const model = modelBadge?.textContent?.trim() || 'ChatGPT';
-
-    const totalTablesCount = messages.reduce((acc, m) => acc + (m.tables?.length || 0), 0);
+    // Model extraction
+    let model = 'ChatGPT';
+    const modelBadge = document.querySelector('[data-testid="model-switcher-dropdown-button"], button[id*="model-selector"], div[class*="model-title"]');
+    if (modelBadge && modelBadge.textContent) {
+      model = modelBadge.textContent.trim();
+    }
 
     return {
       id: `chatgpt-${Date.now()}`,
       title,
       platform: this.platform,
-      url: window.location.href,
-      exportedAt: new Date().toISOString(),
       model,
+      url: typeof window !== 'undefined' ? window.location.href : 'https://chatgpt.com',
+      exportedAt: new Date().toISOString(),
       messages,
-      totalTablesCount
+      totalTablesCount: messages.reduce((acc, m) => acc + (m.tables ? m.tables.length : 0), 0)
     };
   }
 }
