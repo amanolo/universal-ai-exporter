@@ -60,7 +60,7 @@
 | **UAT-09-D-ALL** | **DeepSeek** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all tables to CSV. | [x] |
 | **UAT-09-D-SEL** | **DeepSeek** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports selected table to CSV. | [x] |
 | | | | | | | |
-| **UAT-SMOKE-FIREFOX** | **Firefox** | Cross-Browser Smoke Audit | Load `dist/firefox` in `about:debugging` | Export 1 MD & 1 PDF on any platform | Add-on loads cleanly with dual MV3 compatibility; downloads & print dialogs trigger smoothly. | [ ] |
+| **UAT-SMOKE-FIREFOX** | **Firefox** | Cross-Browser Smoke Audit | Load `dist/firefox` in `about:debugging` | Export 1 MD & 1 PDF on any platform | Add-on loads cleanly with dual MV3 compatibility; downloads & print dialogs trigger smoothly. | [x] |
 | **UAT-SMOKE-EDGE** | **Edge** | Cross-Browser Smoke Audit | Load `dist/chromium` in `edge://extensions` | Export 1 MD & 1 PDF on any platform | Unpacked extension loads cleanly; full Chromium parity confirmed. | [ ] |
 | | | | | | | |
 | **UAT-RICH-DOCS** | **Universal** | Rich Text Clipboard | Any conversation with tables/code | Click **📋 Copy Rich** → Paste in Google Docs (`Cmd+V`) | Pastes with real formatted headings, styled background cards, and real editable tables. | [ ] |
