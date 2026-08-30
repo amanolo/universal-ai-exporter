@@ -188,6 +188,17 @@ export class MarkdownExporter {
     // Normalize checklists and clean unescaped URLs first
     markdownContent = cleanMarkdownUrls(normalizeChecklists(markdownContent));
 
+    // Replace raw base64 image data URIs in Markdown with clean URL or attachment placeholder
+    if (markdownContent.includes('data:image/')) {
+      const cleanUrl = msg.images?.find(img => !img.startsWith('data:') && (img.startsWith('http://') || img.startsWith('https://')));
+      markdownContent = markdownContent.replace(/!\[(.*?)\]\(data:image\/[^\)]+\)/g, (_match, alt) => {
+        if (cleanUrl) {
+          return `![${alt || 'User Attachment'}](${cleanUrl})`;
+        }
+        return `*[Attached Image${alt ? `: ${alt}` : ''}]*`;
+      });
+    }
+
     // Ensure extracted web images are present if includeImages is true (default), or strip them if false
     if (options.includeImages !== false) {
       if (msg.images && msg.images.length > 0) {
