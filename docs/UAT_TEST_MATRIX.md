@@ -28,7 +28,7 @@
 | **UAT-07-MD** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **Markdown** | Generated code files and components are grouped in a dedicated `#### 📦 Claude Artifacts` section. | [x] |
 | **UAT-07-PDF** | **Claude** | Code & Component Artifacts | Write a React button component in a code artifact | Export to **PDF** | Artifacts are rendered in dedicated framed code cards. | [x] |
 | **UAT-09-B-ALL** | **Claude** | Tables to CSV (All Tables) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export All Tables** | Exports all detected tables into a single formatted CSV. | [x] |
-| **UAT-09-B-SEL** | **Claude** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports chosen table as a clean single CSV file. | [ ] |
+| **UAT-09-B-SEL** | **Claude** | Tables to CSV (Selected Table) | Compare PostgreSQL vs SQLite in a table | CSV Tab → **Export Selected Table** | Exports chosen table as a clean single CSV file. | [x] |
 | **UAT-10-B-EXEC** | **Claude** | PDF Executive Theme | Any conversation | PDF Options → **Executive** → Export PDF | Clean modern light layout. | [ ] |
 | **UAT-10-B-MID** | **Claude** | PDF Midnight Theme | Any conversation | PDF Options → **Midnight** → Export PDF | Dark mode layout with high contrast. | [ ] |
 | **UAT-10-B-ACAD** | **Claude** | PDF Academic Theme | Any conversation | PDF Options → **Academic** → Export PDF | Formal serif academic paper style. | [ ] |
