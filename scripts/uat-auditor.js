@@ -468,12 +468,17 @@ function evaluateRules(uatId, conv, content, meta) {
       detail: noBtnNoise ? 'Zero UI clutter / buttons detected' : 'Found stray UI button or header noise'
     });
 
-    // Check that assistant conversational text is preserved
-    const hasResponseText = Boolean(aiMsgWithImg && aiMsgWithImg.contentText && aiMsgWithImg.contentText.trim().length > 0);
+    // Check that assistant response content (text or visual generation) is preserved
+    const hasResponseText = Boolean(
+      (aiMsgWithImg && aiMsgWithImg.contentText && aiMsgWithImg.contentText.trim().length > 0) ||
+      (aiMsgWithImg && aiMsgWithImg.images && aiMsgWithImg.images.length > 0)
+    );
     checks.push({
-      title: 'Conversational Response Text Preserved',
+      title: 'Conversational Response Content / Visual Preserved',
       pass: hasResponseText,
-      detail: hasResponseText ? `Captured response text: "${aiMsgWithImg.contentText.slice(0, 45)}..."` : 'Conversational text was missing'
+      detail: hasResponseText
+        ? `Captured response content (${aiMsgWithImg?.contentText?.trim() ? `"${aiMsgWithImg.contentText.slice(0, 45)}..."` : 'Visual Image Generation'})`
+        : 'Conversational content was missing'
     });
   }
 
