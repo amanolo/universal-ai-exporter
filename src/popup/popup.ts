@@ -89,19 +89,31 @@ async function initPopup(): Promise<void> {
 
         const listEl = document.getElementById('turns-list');
         if (listEl) {
-          listEl.innerHTML = `
-            <div class="turns-empty">
-              <p style="margin-bottom: 6px; font-weight: 600;">⚠️ Tab disconnected from extension</p>
-              <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 8px;">Chat was open before extension reloaded.</p>
-              <button class="btn-micro" id="btn-reload-active-tab" style="padding: 4px 12px; font-size: 11px;">🔄 Reload Tab Now</button>
-            </div>
-          `;
-          document.getElementById('btn-reload-active-tab')?.addEventListener('click', () => {
+          listEl.replaceChildren();
+          const emptyContainer = document.createElement('div');
+          emptyContainer.className = 'turns-empty';
+          const p1 = document.createElement('p');
+          p1.style.marginBottom = '6px';
+          p1.style.fontWeight = '600';
+          p1.textContent = '⚠️ Tab disconnected from extension';
+          const p2 = document.createElement('p');
+          p2.style.fontSize = '10px';
+          p2.style.color = 'var(--text-secondary)';
+          p2.style.marginBottom = '8px';
+          p2.textContent = 'Chat was open before extension reloaded.';
+          const reloadBtn = document.createElement('button');
+          reloadBtn.className = 'btn-micro';
+          reloadBtn.style.padding = '4px 12px';
+          reloadBtn.style.fontSize = '11px';
+          reloadBtn.textContent = '🔄 Reload Tab Now';
+          reloadBtn.addEventListener('click', () => {
             if (tab.id) {
               chrome.tabs.reload(tab.id);
               window.close();
             }
           });
+          emptyContainer.append(p1, p2, reloadBtn);
+          listEl.appendChild(emptyContainer);
         }
         return;
       }
@@ -468,11 +480,14 @@ function renderCustomTurnsList(conv: ConversationData): void {
   if (!listEl) return;
 
   if (conv.messages.length === 0) {
-    listEl.innerHTML = '<div class="turns-empty">No message turns found.</div>';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'turns-empty';
+    emptyDiv.textContent = 'No message turns found.';
+    listEl.replaceChildren(emptyDiv);
     return;
   }
 
-  listEl.innerHTML = '';
+  listEl.replaceChildren();
 
   conv.messages.forEach((msg, idx) => {
     const isSelected = selectedCustomTurnIds.has(msg.id);
@@ -494,18 +509,34 @@ function renderCustomTurnsList(conv: ConversationData): void {
     const isUser = msg.role === 'user';
     const roleLabel = isUser ? 'You' : (conv.platform === 'claude' ? 'Claude' : conv.platform === 'deepseek' ? 'DeepSeek' : 'AI');
 
-    item.innerHTML = `
-      <input type="checkbox" class="turn-checkbox" id="chk-turn-${idx}" ${isSelected ? 'checked' : ''}>
-      <div class="turn-body">
-        <div class="turn-meta">
-          <span class="turn-badge ${isUser ? 'user' : 'assistant'}">${roleLabel}</span>
-          <span class="turn-number">Turn #${idx + 1}</span>
-        </div>
-        <div class="turn-snippet">${snippet || 'Empty turn'}</div>
-      </div>
-    `;
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'turn-checkbox';
+    checkbox.id = `chk-turn-${idx}`;
+    checkbox.checked = isSelected;
 
-    const checkbox = item.querySelector<HTMLInputElement>('.turn-checkbox');
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'turn-body';
+
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'turn-meta';
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = `turn-badge ${isUser ? 'user' : 'assistant'}`;
+    badgeSpan.textContent = roleLabel;
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'turn-number';
+    numSpan.textContent = `Turn #${idx + 1}`;
+
+    metaDiv.append(badgeSpan, numSpan);
+
+    const snippetDiv = document.createElement('div');
+    snippetDiv.className = 'turn-snippet';
+    snippetDiv.textContent = snippet || 'Empty turn';
+
+    bodyDiv.append(metaDiv, snippetDiv);
+    item.append(checkbox, bodyDiv);
     
     // Toggle on item or checkbox click
     item.addEventListener('click', (e) => {
@@ -618,15 +649,29 @@ function updateScopeUI(): void {
       });
 
       const savedVal = tableSelect.value;
-      tableSelect.innerHTML = `<option value="-1">All Tables in Scope (${allScopedTables.length} Tables)</option>` +
-        allScopedTables.map((t, idx) => `<option value="${idx}">Table ${idx + 1}: ${t.preview} (${t.rows} rows)</option>`).join('');
+      tableSelect.replaceChildren();
+      const allOpt = document.createElement('option');
+      allOpt.value = '-1';
+      allOpt.textContent = `All Tables in Scope (${allScopedTables.length} Tables)`;
+      tableSelect.appendChild(allOpt);
+
+      allScopedTables.forEach((t, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        opt.textContent = `Table ${idx + 1}: ${t.preview} (${t.rows} rows)`;
+        tableSelect.appendChild(opt);
+      });
 
       if (savedVal && parseInt(savedVal, 10) < allScopedTables.length) {
         tableSelect.value = savedVal;
       }
     } else {
       selectGroup.style.display = 'none';
-      tableSelect.innerHTML = `<option value="-1">All Tables in Scope</option>`;
+      tableSelect.replaceChildren();
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '-1';
+      defaultOpt.textContent = 'All Tables in Scope';
+      tableSelect.appendChild(defaultOpt);
     }
   }
 

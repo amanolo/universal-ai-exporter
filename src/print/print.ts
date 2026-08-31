@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const themeLabel = (theme || 'executive').toUpperCase();
       const titleEl = document.getElementById('print-header-title');
       if (titleEl) {
-        titleEl.innerHTML = `<strong>Universal AI Exporter</strong> &bull; Print Preview (${themeLabel} Theme)`;
+        titleEl.textContent = `Universal AI Exporter • Print Preview (${themeLabel} Theme)`;
       }
 
       const html = PDFExporter.generateDocumentHtml(conversation, theme, options);
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const contentEl = document.getElementById('print-content');
       if (contentEl) {
-        contentEl.innerHTML = '';
+        contentEl.replaceChildren();
         const header = doc.querySelector('.header-banner');
         const stream = doc.querySelector('.conversation-stream');
         const footer = doc.querySelector('.doc-footer');
