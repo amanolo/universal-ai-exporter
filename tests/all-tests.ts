@@ -6,3 +6,4 @@
 import './adapters.test.js';
 import './exporters.test.js';
 import './security.test.js';
+import './usage-tracker.test.js';

@@ -7,6 +7,7 @@
     "test": "node scripts/test-suite.js",
     "generate:icons": "node scripts/generate-icons.js",
     "generate:license": "node scripts/generate-license.js",
+    "generate:bulk-keys": "node scripts/generate-bulk-keys.js",
     "test:license": "node scripts/test-license.js",
     "build": "node scripts/build.js",
     "build:chromium": "node scripts/build.js --target chromium",

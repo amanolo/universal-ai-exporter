@@ -285,8 +285,8 @@
     <!-- License Activation Section / Trigger -->
     <div class="license-banner" id="license-banner">
       <div class="license-text">
-        <div class="license-title">⭐ Upgrade to Pro Lifetime ($7)</div>
-        <div class="license-desc">Unlock Executive & Academic PDFs + DeepSeek Reasoning + All Themes.</div>
+        <div class="license-title">⭐ Support Development — Lifetime License ($9.99)</div>
+        <div class="license-desc">Support 100% private, offline AI tools & unlock the permanent gold badge.</div>
       </div>
       <button class="btn btn-pro" id="btn-open-license">Activate</button>
     </div>
@@ -299,17 +299,41 @@
           <button class="modal-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="modal-text">Enter your 100% offline license key below:</p>
+          <p class="modal-text">Already purchased? Enter your offline license key below:</p>
           <input type="text" id="license-key-input" class="license-input" placeholder="UAIE-PRO.eyJlbWFpb..." spellcheck="false" autocomplete="off" aria-label="License key">
           <div id="license-feedback" class="license-feedback" aria-live="polite"></div>
 
           <button class="btn btn-primary" id="btn-submit-key">Verify & Activate Instantly</button>
 
           <div class="buy-links">
-            <span class="buy-label">Don't have a key?</span>
+            <span class="buy-label">Don't have a license key yet?</span>
             <div class="buy-buttons">
-              <a href="https://lemon.squeezy.com" target="_blank" class="buy-btn">💳 Buy Lifetime ($7)</a>
+              <a href="https://lemon.squeezy.com" target="_blank" class="buy-btn">💳 Buy Lifetime License ($9.99)</a>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supporter Milestone Modal (Shown every 15 exports for non-Pro users) -->
+    <div class="modal-overlay" id="milestone-modal" role="dialog" aria-modal="true" aria-labelledby="milestone-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title" id="milestone-title">🎉 <span id="milestone-count-display">15</span> Chats Exported!</div>
+          <button class="modal-close" id="btn-close-milestone" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-text">If <strong>Universal AI Exporter</strong> is saving you time, consider supporting independent development with a one-time lifetime license.</p>
+          <div class="milestone-actions">
+            <a href="https://lemon.squeezy.com" target="_blank" class="btn btn-primary" id="btn-milestone-buy">
+              💳 Buy Lifetime License ($9.99)
+            </a>
+            <button class="btn btn-secondary" id="btn-milestone-enter-key">
+              🔑 Enter License Key
+            </button>
+            <button class="btn-text-dismiss" id="btn-milestone-dismiss">
+              Keep Using for Free
+            </button>
           </div>
         </div>
       </div>

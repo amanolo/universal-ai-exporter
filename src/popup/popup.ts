@@ -5,6 +5,7 @@
 
 import { ConversationData, ExportScopeMode, ExtractedMessage, PDFTheme } from '../core/types';
 import { LicenseManager } from '../core/licensing/license-manager';
+import { UsageTracker } from '../core/licensing/usage-tracker';
 import { MarkdownExporter } from '../core/exporters/markdown-exporter';
 import { PDFExporter } from '../core/exporters/pdf-exporter';
 import { CSVExporter } from '../core/exporters/csv-exporter';
@@ -22,6 +23,26 @@ function showToast(message: string, durationMs = 3000): void {
   setTimeout(() => {
     toast.classList.remove('active');
   }, durationMs);
+}
+
+async function handleExportCompletion(isClipboard = false): Promise<void> {
+  try {
+    const { count, shouldShowMilestone } = await UsageTracker.recordExport(isClipboard);
+    if (shouldShowMilestone) {
+      showMilestoneModal(count);
+    }
+  } catch (e) {
+    console.warn('Universal AI Exporter: Error tracking export milestone', e);
+  }
+}
+
+function showMilestoneModal(count: number): void {
+  const milestoneModal = document.getElementById('milestone-modal');
+  const countDisplay = document.getElementById('milestone-count-display');
+  if (countDisplay) {
+    countDisplay.textContent = String(count);
+  }
+  milestoneModal?.classList.add('active');
 }
 
 /**
@@ -659,6 +680,33 @@ function setupModal(): void {
   const keyInput = document.getElementById('license-key-input') as HTMLInputElement;
   const feedback = document.getElementById('license-feedback');
 
+  const milestoneModal = document.getElementById('milestone-modal');
+  const closeMilestoneBtn = document.getElementById('btn-close-milestone');
+  const dismissMilestoneBtn = document.getElementById('btn-milestone-dismiss');
+  const enterKeyFromMilestoneBtn = document.getElementById('btn-milestone-enter-key');
+
+  const dismissMilestone = async () => {
+    milestoneModal?.classList.remove('active');
+    const count = await UsageTracker.getExportCount();
+    await UsageTracker.acknowledgeMilestone(count);
+  };
+
+  closeMilestoneBtn?.addEventListener('click', dismissMilestone);
+  dismissMilestoneBtn?.addEventListener('click', dismissMilestone);
+
+  enterKeyFromMilestoneBtn?.addEventListener('click', () => {
+    milestoneModal?.classList.remove('active');
+    modal?.classList.add('active');
+    if (keyInput) {
+      keyInput.value = '';
+      keyInput.focus();
+    }
+    if (feedback) {
+      feedback.textContent = '';
+      feedback.className = 'license-feedback';
+    }
+  });
+
   openBtn?.addEventListener('click', () => {
     modal?.classList.add('active');
     if (keyInput) {
@@ -675,15 +723,32 @@ function setupModal(): void {
     modal?.classList.remove('active');
   });
 
-  // Close modal with Escape key
+  // Close modals with Escape key
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+    if (e.key === 'Escape') {
+      if (modal?.classList.contains('active')) {
+        modal.classList.remove('active');
+      }
+      if (milestoneModal?.classList.contains('active')) {
+        dismissMilestone();
+      }
+    }
+  });
+
+  // Close modals on clicking outside card (backdrop click)
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
       modal.classList.remove('active');
+    }
+  });
+  milestoneModal?.addEventListener('click', (e) => {
+    if (e.target === milestoneModal) {
+      dismissMilestone();
     }
   });
 
   submitBtn?.addEventListener('click', async () => {
-    const key = keyInput?.value.trim() || '';
+    const key = keyInput?.value.trim().replace(/[\r\n\t"]/g, '') || '';
     if (!key) {
       if (feedback) {
         feedback.textContent = 'Please paste your license key.';
@@ -910,6 +975,7 @@ function setupExportButtons(): void {
           includeImages
         });
         showToast('✅ Print view opened!');
+        await handleExportCompletion(false);
       } catch (e) {
         console.error('Print view failed:', e);
         showToast('❌ Failed to open print view.');
@@ -975,6 +1041,7 @@ function setupExportButtons(): void {
         ]);
 
         showToast('📋 Copied Rich Text (ready for Docs/Word)!');
+        await handleExportCompletion(true);
       } catch (e) {
         console.error('Rich copy failed:', e);
         showToast('❌ Failed to copy rich text.');
@@ -1017,6 +1084,7 @@ function setupExportButtons(): void {
       const filename = sanitizeFilename(conv.title, 'md');
       downloadBlob(markdown, filename, 'text/markdown');
       showToast('✅ Markdown saved!');
+      await handleExportCompletion(false);
     });
   });
 
@@ -1052,6 +1120,7 @@ function setupExportButtons(): void {
 
       await navigator.clipboard.writeText(markdown);
       showToast('📝 Copied Markdown (for Obsidian)!');
+      await handleExportCompletion(true);
     });
   });
 
@@ -1097,6 +1166,7 @@ function setupExportButtons(): void {
       const filename = sanitizeFilename(`${conv.title}${filenameSuffix}`, 'csv');
       downloadBlob(result.csvContent, filename, 'text/csv');
       showToast(`✅ Exported ${result.count} table(s) to CSV!`);
+      await handleExportCompletion(false);
     });
   });
 }

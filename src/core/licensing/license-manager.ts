@@ -109,4 +109,19 @@ export class LicenseManager {
       };
     }
   }
+
+  /**
+   * Resets license state (Used strictly for testing)
+   */
+  public static async resetForTesting(): Promise<void> {
+    this.cachedStatus = null;
+    try {
+      if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+        await chrome.storage.local.remove([STORAGE_KEY, LEGACY_STORAGE_KEY]);
+      } else if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    } catch {}
+  }
 }
