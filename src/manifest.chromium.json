@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Universal AI Exporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Export chats, code, reasoning traces & citations from ChatGPT, Claude, Perplexity, DeepSeek, and Gemini to PDF, Markdown & CSV.",
   "permissions": [
     "storage",

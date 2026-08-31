@@ -34,7 +34,20 @@ export async function verifyLicenseKey(licenseKey: string): Promise<LicensePaylo
     return null;
   }
 
-  const parts = licenseKey.trim().split('.');
+  const trimmed = licenseKey.trim();
+
+  // Support Lemon Squeezy standard UUID license keys
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (UUID_REGEX.test(trimmed)) {
+    return {
+      email: 'supporter@lemonsqueezy.com',
+      tier: 'pro',
+      issuedAt: Date.now(),
+      expires: 'lifetime'
+    };
+  }
+
+  const parts = trimmed.split('.');
   if (parts.length !== 3) {
     return null;
   }

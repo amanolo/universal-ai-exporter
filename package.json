@@ -1,6 +1,6 @@
 {
   "name": "universal-ai-exporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal AI Exporter - 100% private, client-side browser extension to export ChatGPT, Claude, Perplexity, DeepSeek, and Gemini chats to PDF, Markdown, and CSV.",
   "type": "module",
   "scripts": {
