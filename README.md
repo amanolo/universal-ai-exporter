@@ -67,6 +67,18 @@ Universal AI Exporter/
 
 ---
 
+## 🛠️ Build Instructions & Environment (For Mozilla Reviewers)
+
+- **Operating System**: Platform independent (macOS, Ubuntu Linux 22.04/24.04 LTS, Windows 10/11)
+- **Runtime Environment**: Node.js `>= 20.0.0` (LTS), npm `>= 10.0.0`
+- **Build Steps**:
+  1. `npm install` (Installs open-source build dependencies from `package-lock.json`)
+  2. `npm run build` (Compiles TypeScript and bundles local assets via `scripts/build.js` using `esbuild`)
+- **Output**: The compiled, unminified add-on code is output to `dist/firefox/`, matching the submitted package 1:1.
+- **Automated Tests**: Run `npm test` and `npm run test:license` to run the 35-test verification suite.
+
+---
+
 ## 📦 How to Test & Load Locally
 
 ### 1. Build the Extension
