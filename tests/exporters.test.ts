@@ -407,4 +407,91 @@ test('Exporter 9: Relative /api/ Link Filtering and V Tool Noise Stripping', () 
   assert.ok(md.includes('Here is a bright sunshine scene for you ☀️'));
 });
 
+test('Exporter 10: Full Toggle Verification Suite (Markdown & PDF Options ON vs OFF)', () => {
+  const toggleTestData: ConversationData = {
+    id: 'conv-toggle-test',
+    title: 'PostgreSQL vs SQLite Architecture',
+    platform: 'claude',
+    model: 'Claude 3.7 Sonnet',
+    url: 'https://claude.ai/chat/toggle-test',
+    exportedAt: '2026-08-31T09:30:00.000Z',
+    totalTablesCount: 1,
+    messages: [
+      {
+        id: 'm1',
+        role: 'user',
+        author: 'You',
+        contentHtml: '<p>Compare PostgreSQL vs SQLite with a diagram and code snippet.</p>',
+        contentText: 'Compare PostgreSQL vs SQLite with a diagram and code snippet.',
+        codeBlocks: [],
+        images: ['https://images.unsplash.com/photo-database.jpg']
+      },
+      {
+        id: 'm2',
+        role: 'assistant',
+        author: 'Claude',
+        reasoning: 'Detailed reasoning: Analyzing client-server vs embedded relational architectures.',
+        contentHtml: '<p>PostgreSQL is client-server, whereas SQLite is embedded.</p>',
+        contentText: 'PostgreSQL is client-server, whereas SQLite is embedded.',
+        codeBlocks: [{ language: 'typescript', code: 'const db = new Database();' }],
+        tables: [[['Feature', 'PostgreSQL', 'SQLite'], ['Engine', 'Server', 'Embedded']]],
+        artifacts: [{ id: 'art-1', title: 'DbConnector.ts', type: 'code', content: 'export class DbConnector {}' }],
+        citations: [{ index: 1, title: 'SQLite Architecture Guide', url: 'https://sqlite.org/arch.html', siteName: 'sqlite.org' }],
+        images: ['https://images.unsplash.com/photo-diagram.jpg']
+      }
+    ]
+  };
+
+  const mdExporter = new MarkdownExporter();
+
+  // 1. Markdown Frontmatter
+  const mdFmOn = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeFrontmatter: true });
+  const mdFmOff = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeFrontmatter: false });
+  assert.ok(mdFmOn.startsWith('---'), 'Frontmatter ON must start with YAML block');
+  assert.equal(mdFmOff.startsWith('---'), false, 'Frontmatter OFF must not start with YAML block');
+
+  // 2. Markdown Reasoning
+  const mdReasOn = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeReasoning: true });
+  const mdReasOff = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeReasoning: false });
+  assert.ok(mdReasOn.includes('> [!note]- 🧠 **Reasoning Process**'), 'Reasoning ON must include callout');
+  assert.equal(mdReasOff.includes('Reasoning Process'), false, 'Reasoning OFF must exclude callout');
+
+  // 3. Markdown Citations
+  const mdCitOn = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeCitations: true });
+  const mdCitOff = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeCitations: false });
+  assert.ok(mdCitOn.includes('#### 📚 **Citations & References**'), 'Citations ON must include references');
+  assert.equal(mdCitOff.includes('Citations & References'), false, 'Citations OFF must exclude references');
+
+  // 4. Markdown Images
+  const mdImgOn = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeImages: true });
+  const mdImgOff = mdExporter.exportToMarkdown(toggleTestData, { format: 'markdown', includeImages: false });
+  assert.ok(mdImgOn.includes('![User Attachment](https://images.unsplash.com/photo-database.jpg)'), 'Images ON must render image link');
+  assert.equal(mdImgOff.includes('photo-database.jpg'), false, 'Images OFF must strip image link');
+
+  // 5. PDF Reasoning
+  const pdfReasOn = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeReasoning: true });
+  const pdfReasOff = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeReasoning: false });
+  assert.ok(pdfReasOn.includes('🧠 Reasoning Process'), 'PDF Reasoning ON must render reasoning box');
+  assert.equal(pdfReasOff.includes('Reasoning Process'), false, 'PDF Reasoning OFF must omit reasoning box');
+
+  // 6. PDF Citations
+  const pdfCitOn = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeCitations: true });
+  const pdfCitOff = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeCitations: false });
+  assert.ok(pdfCitOn.includes('📚 Citations & Sources'), 'PDF Citations ON must render sources list');
+  assert.equal(pdfCitOff.includes('Citations & Sources'), false, 'PDF Citations OFF must omit sources list');
+
+  // 7. PDF Artifacts
+  const pdfArtOn = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeArtifacts: true });
+  const pdfArtOff = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeArtifacts: false });
+  assert.ok(pdfArtOn.includes('ARTIFACT:'), 'PDF Artifacts ON must render artifact panel');
+  assert.equal(pdfArtOff.includes('ARTIFACT:'), false, 'PDF Artifacts OFF must omit artifact panel');
+
+  // 8. PDF Images
+  const pdfImgOn = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeImages: true });
+  const pdfImgOff = PDFExporter.generateDocumentHtml(toggleTestData, 'executive', { format: 'pdf', includeImages: false });
+  assert.ok(pdfImgOn.includes('<img src="https://images.unsplash.com/photo-database.jpg"'), 'PDF Images ON must render <img> tag');
+  assert.equal(pdfImgOff.includes('<img'), false, 'PDF Images OFF must omit <img> tag');
+});
+
+
 
