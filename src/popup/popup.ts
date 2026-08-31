@@ -249,6 +249,28 @@ function setupMarkdownOptions(): void {
       }
     });
   });
+
+  const resetBtn = document.getElementById('btn-reset-md-opts');
+  resetBtn?.addEventListener('click', () => {
+    const defaults: Record<string, { id: string; val: boolean }> = {
+      uaie_opt_md_frontmatter: { id: 'opt-md-frontmatter', val: false },
+      uaie_opt_md_reasoning: { id: 'opt-md-reasoning', val: true },
+      uaie_opt_md_citations: { id: 'opt-md-citations', val: true },
+      uaie_opt_md_images: { id: 'opt-md-images', val: true }
+    };
+
+    const storagePayload: Record<string, boolean> = {};
+    Object.entries(defaults).forEach(([key, { id, val }]) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.checked = val;
+      storagePayload[key] = val;
+    });
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set(storagePayload);
+    }
+    showToast('↺ Restored Markdown defaults');
+  });
 }
 
 /**
@@ -277,6 +299,28 @@ function setupPdfOptions(): void {
         chrome.storage.local.set({ [key]: el.checked });
       }
     });
+  });
+
+  const resetBtn = document.getElementById('btn-reset-pdf-opts');
+  resetBtn?.addEventListener('click', () => {
+    const defaults: Record<string, { id: string; val: boolean }> = {
+      uaie_opt_pdf_reasoning: { id: 'opt-pdf-reasoning', val: true },
+      uaie_opt_pdf_citations: { id: 'opt-pdf-citations', val: true },
+      uaie_opt_pdf_artifacts: { id: 'opt-pdf-artifacts', val: true },
+      uaie_opt_pdf_images: { id: 'opt-pdf-images', val: true }
+    };
+
+    const storagePayload: Record<string, boolean> = {};
+    Object.entries(defaults).forEach(([key, { id, val }]) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.checked = val;
+      storagePayload[key] = val;
+    });
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set(storagePayload);
+    }
+    showToast('↺ Restored PDF defaults');
   });
 }
 
