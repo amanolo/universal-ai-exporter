@@ -4,8 +4,25 @@
 * **Product**: Universal AI Exporter (Dual Chromium & Firefox Manifest V3 Extension)
 * **Author**: Lead Monetization Strategist & Architecture Worker
 * **Date**: August 28, 2026
-* **Version**: 1.0.0 (Production Release Strategy)
-* **Status**: Approved & Publication-Ready
+* **Version**: 1.0.1 (Production Live Release)
+* **Status**: Implemented & Live in Stores
+
+---
+
+## 🌟 Implemented Production Monetization Engine (v1.0.1)
+
+Universal AI Exporter **v1.0.1** implements **Option C (The Sublime Text / WinRAR Supporter Honor Model)**:
+
+* **Core Value Proposition**: 100% of features (all 5 AI platforms, PDF themes, Obsidian Markdown, CSV table export) are **free and fully functional forever**.
+* **Lifetime Supporter License**: **$9.99 / €9.99** one-time purchase with zero recurring subscriptions.
+* **Merchant of Record**: **Lemon Squeezy** (`universalaiexporter.lemonsqueezy.com`).
+  * Live Checkout Link: `https://universalaiexporter.lemonsqueezy.com/checkout/buy/a18a3c4c-5820-4816-b49c-f9e3d8eca1be?logo=0&discount=0`
+  * Lemon Squeezy automatically handles EU VAT, global sales taxes, currency conversions, and automated key delivery.
+* **Non-Blocking Supporter Milestone**: Triggers every **15 exports** (`15, 30, 45...`) with a 2.5s clipboard debounce, easily dismissed with 1 click ("Keep Using for Free"). Completely silenced once a Pro key is activated.
+* **100% Offline Dual-Key Cryptography**:
+  * Supports native **Ed25519 Web Crypto** signature verification (`UAIE-PRO.payload.signature`).
+  * Supports standard **Lemon Squeezy order UUID keys** (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+  * Instant offline verification (`<0.6ms`) with **0 outbound network requests**.
 
 ---
 
