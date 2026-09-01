@@ -7,7 +7,7 @@
 ## Extension Metadata
 
 - **Name**: Universal AI Exporter
-- **Version**: 1.0.0
+- **Version**: 1.0.1
 - **Summary / Short Description**: Export ChatGPT, Claude, Perplexity, DeepSeek & Gemini chats to Obsidian Markdown, styled PDFs & CSVs. 100% private & offline.
 - **Primary Category**: Productivity
 - **Secondary Category**: Developer Tools
@@ -40,6 +40,13 @@
 ---
 
 ## Version History
+
+### Version 1.0.1 (2026-08-31)
+- Live Lemon Squeezy Merchant of Record checkout integration ($9.99 Lifetime License).
+- Dual key offline verification: supports Ed25519 cryptographic tokens and Lemon Squeezy order UUIDs with 0 remote network calls.
+- Non-blocking 15-export supporter milestone notification with 2.5s clipboard debounce.
+- Mozilla Firefox AMO built-in data consent compliance (`data_collection_permissions: { required: ["none"] }`).
+- Refactored popup and print renderers for DOM safety and 0 linter warnings.
 
 ### Version 1.0.0 (2026-08-28)
 - Initial release for Microsoft Edge Add-ons, Mozilla Firefox AMO, Google Chrome Web Store, and Brave.
