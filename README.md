@@ -119,7 +119,15 @@ To generate valid offline Pro license keys for testing or distribution:
 node scripts/generate-license.js user@example.com pro lifetime
 ```
 
-The script will output a signed token (e.g. `UAIE-PRO.eyJlbWFpb...`). Paste this token into the popup's **"Activate Pro License"** modal to instantly unlock Pro features in memory (verified locally in `<1ms` with Web Crypto).
+The script will output a signed token (e.g. `UAIE-PRO.eyJlbWFpb...`). Paste this token into the popup's **"Activate Pro License"** modal to activate Lifetime Supporter status and permanently dismiss community milestone reminders (verified locally in `<1ms` with Web Crypto).
+
+---
+
+## 📜 Legal, Policies & Store Compliance
+
+- **[Privacy Policy](docs/PRIVACY.md)**: 100% client-side operation, 0 outbound network requests, 0 telemetry.
+- **[Terms of Service](docs/TERMS.md)**: Community freeware license and Lifetime Supporter terms.
+- **[Refund Policy](docs/REFUND.md)**: Voluntary supporter contribution and non-refundable digital license policy.
 
 ---
 
@@ -132,6 +140,6 @@ npm run package
 ```
 
 This generates:
-- `universal-ai-exporter-edge-v1.0.0.zip` (for Microsoft Edge Add-ons)
-- `universal-ai-exporter-firefox-v1.0.0.zip` (for Mozilla Firefox AMO)
-- `universal-ai-exporter-chrome-v1.0.0.zip` (for Chrome Web Store / Brave)
+- `universal-ai-exporter-edge-v1.0.1.zip` (for Microsoft Edge Add-ons)
+- `universal-ai-exporter-firefox-v1.0.1.zip` (for Mozilla Firefox AMO)
+- `universal-ai-exporter-chrome-v1.0.1.zip` (for Chrome Web Store / Brave)
