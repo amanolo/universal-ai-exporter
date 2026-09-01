@@ -11,6 +11,7 @@ Official store listing metadata, optimized search keywords, copy variations, and
 | **Extension Title** | Universal AI Exporter — ChatGPT, Claude, DeepSeek to PDF & Markdown |
 | **Version** | `1.0.1` |
 | **Category** | Productivity / Developer Tools |
+| **YouTube Video Demo** | `https://www.youtube.com/watch?v=U2rA7z9JdP0` |
 | **Short Description** (132 chars max) | Export ChatGPT, Claude, Perplexity, DeepSeek & Gemini chats to Obsidian Markdown, styled PDFs & CSVs. 100% private & offline. |
 
 ---

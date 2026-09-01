@@ -2,6 +2,8 @@
 
 > A lightweight, **100% private, client-side browser extension** (Manifest V3) that exports conversations, code blocks, reasoning traces, and citations from **ChatGPT, Claude, Perplexity, DeepSeek, and Google Gemini** into beautifully styled PDFs, Obsidian-ready Markdown, and CSV tables.
 
+[![Universal AI Exporter Video Demo](https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=U2rA7z9JdP0)
+
 ---
 
 ## 🔒 100% Client-Side Privacy Guarantee

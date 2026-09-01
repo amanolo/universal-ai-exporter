@@ -12,6 +12,7 @@
 - **Primary Category**: Productivity
 - **Secondary Category**: Developer Tools
 - **Default Language**: English
+- **YouTube Video URL**: `https://www.youtube.com/watch?v=U2rA7z9JdP0`
 
 ---
 
